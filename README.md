@@ -14,6 +14,18 @@ The plan is to use w3.py to mange accounts and interact with the "Volta"-Testcha
 
 ## Setup
 
+```
 conda env create -f environment.yml
+```
 
+```
 activate dcpg
+```
+
+## Test
+
+No real tests yet, but run:
+
+```
+pytest
+```
