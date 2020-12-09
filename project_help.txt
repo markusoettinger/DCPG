@@ -1,0 +1,9 @@
+Project requirements
+Understanding of the data
+Knowledge of smart contract based on solidity (https://remix.ethereum.org/)
+Set up local nodes of Volta test chain
+(https://energyweb.atlassian.net/wiki/spaces/EWF/pages/723550263/Setting+Up+Local+Nodes+Accounts)
+Basic knowledge in Python (Work with Jupyter Notebook)
+Knowledge of Web3.py (https://web3py.readthedocs.io/en/stable/overview.html)
+Parity Ethereum stable (https://github.com/openethereum/openethereum/releases/tag/v2.5.13)
+
