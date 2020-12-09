@@ -11,3 +11,9 @@ These are our first steps into the wondrous world of blockchain.
 ## Basics
 
 The plan is to use w3.py to mange accounts and interact with the "Volta"-Testchain and distribute incentive "tokens".
+
+## Setup
+
+conda env create -f environment.yml
+
+activate dcpg
