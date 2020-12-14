@@ -29,3 +29,7 @@ No real tests yet, but run:
 ```
 pytest
 ```
+
+## Format Python
+
+To align formating the formater "Black" is used for all Python files. Please format your files before committing.
