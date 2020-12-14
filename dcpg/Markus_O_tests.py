@@ -17,14 +17,14 @@ except:
 transaction = {
     'to': '0xDE9d2de48969B86826da4336F389c21e2d1c9812',
     'from': '0xDE9d2de48969B86826da4336F389c21e2d1c9812',
-    'value': 100000,
-    'gas': 21020,
-    'gasPrice': 29000002000,
-    'nonce': 10,
+    'value': 10000,
+    'gas': 2100000,
+    'gasPrice': 290000020,
+    'nonce': 1,
     'chainId': 73799
 }
-
+key = '0x48bd694bbfd4f2816b4355776d3c403449d95298a0cc4835e0372447013e84de'
 signed = weby.eth.account.sign_transaction(transaction, key)
 ret = weby.eth.sendRawTransaction(signed.rawTransaction)
-print(ret)
-print('failed sign_transaction')
+print(Web3.toHex(ret))
+
