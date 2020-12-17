@@ -10,10 +10,10 @@ infura_url = 'https://ropsten.infura.io/v3/1761beb5aae7459b83afd64e8f1003fc'
 web3 = Web3(Web3.HTTPProvider(infura_url))
 
 web3.eth.defaultAccount = address;
-web3.eth.wallet.add({
-    privateKey: privateKey,
-    address: address,
-})
+#web3.eth.wallet.add({
+#    privateKey: privateKey,
+#    address: address,
+#})
 
 def create_account(web3):
     acc = web3.eth.account.create()
