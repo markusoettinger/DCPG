@@ -12,7 +12,11 @@ ret = web3.eth.sendTransaction({'to': web3.eth.accounts[0], 'from': web3.eth.acc
 
 print(Web3.toHex(ret))
 
-acc = web3.eth.account.create()
+newaddress = web3.geth.personal.new_account('hallo')
+print(newaddress)
+web3.geth.personal.unlockAccount(newaddress, 'hallo', 0)
 
-print(acc.address)
+ret = web3.eth.sendTransaction({'from': web3.eth.accounts[1], 'to': newaddress, 'value': 1000000000000002000})
+print(Web3.toHex(ret))
+ret = web3.eth.sendTransaction({'to': web3.eth.accounts[1], 'from': newaddress, 'value': 10000000000000020})
 
