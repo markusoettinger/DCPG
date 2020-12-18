@@ -12,6 +12,10 @@ These are our first steps into the wondrous world of blockchain.
 
 The plan is to use w3.py to mange accounts and interact with the "Volta"-Testchain and distribute incentive "tokens".
 
+That plan may very due to the fact, that connecting to the Volta-RPC is pure shit and we were'nt be able to make transactions...
+Therefore we use Ganache (local Tool: https://www.trufflesuite.com/ganache) to set up a local blockchain which is manageble
+through web3.py. 
+
 ## Setup
 
 ```
