@@ -2,43 +2,44 @@ pragma solidity >=0.4.22 <0.7.0;
 
 /** 
  * @title DCPG
- * @dev Implements voting process along with vote delegation
+ * @dev Distribution of Tokens according to Godwin Algorithm
  */
 contract DCPG {
    
     struct ChargingProcess {
-        string userID; // Kunden ID
-        string chargerID;  // Saeule ID
+        string userID; // Client ID
+        string chargerID;  // Charging unit ID
         address chargee; // addresshash vom chargee
-        uint startTime;   // 
-        uint estimatedDuration;
-        uint availableFlex; //desired Flex
-        uint desiredWh;
+        uint startTime;   // Charging start Time
+        uint estimatedDuration; //estimated charge duration
+        uint availableFlex; //Amout of flex that client is willing to pay for charging boost
+        uint desiredWh; //Amount of Energy client wants to charge
     }
 
     address public godwin;
 
-    ChargingProcess[] public chargingprocesses;
+    ChargingProcess[] public chargingprocesses; //Array with all charging processes in Charging Station
 
     /** 
-     * @dev Create a new ballot to choose one of 'proposalNames'.
-     * @param station names of proposals
+     * @dev Definition of which charging units are part of charging station
+     * @param station names of charging station
      */
     constructor(string memory station) public { 
         godwin = msg.sender;
-        //Welche Charger IDs zu welcher Station gehoeren
+        //Welche Charger IDs zu welcher Station gehoeren (Nice to have)
     }
     
+    //function to delete a charging process from array. Used in stopCharging
     function _burn(uint x) internal {
         require(x < chargingprocesses.length,
-        "Burn hat nicht funktioniert");
+        "Charging process could not be deleted.");
         chargingprocesses[x] = chargingprocesses[chargingprocesses.length-1];
         chargingprocesses.pop();
         //Check if deep copy and not shallow copy
     }
     /** 
-     * @dev Give 'voter' the right to vote on this ballot. May only be called by 'chairperson'.
-     * @param userID address of voter
+     * @dev Stops charging process and distributes flex to client
+     * @param userID ID of client
      */
     function stopCharging(string memory userID, string memory chargerID, uint endTime, int flexFlow, uint chargedWh) public {
         require(
@@ -57,7 +58,7 @@ contract DCPG {
         }
         require(
             found,
-            "Charger ID nicht bekannt."
+            "Charger ID not found."
             );
         //+Flexflow == chargee gets flextokens
         //Flexflow in Wei
@@ -76,18 +77,18 @@ contract DCPG {
     }
 
     /**
-     * @dev Delegate your vote to the voter 'to'.
-     * @param userID address to which vote is delegated
+     * @dev Starts charging process.
+     * @param userID client ID.
      */
      
      //Sanity Checks
     function startCharging(string memory userID, string memory chargerID, uint startTime, uint estimatedDuration, uint desiredWh) payable public {
         
         chargingprocesses.push(ChargingProcess({
-            userID : userID, // Kunden ID
-            chargerID : chargerID,  // Saeule ID
-            chargee : msg.sender, // person delegated to
-            startTime : startTime,   // index of the voted proposal
+            userID : userID, 
+            chargerID : chargerID,  
+            chargee : msg.sender, 
+            startTime : startTime, 
             estimatedDuration : estimatedDuration,
             availableFlex : msg.value,
             desiredWh : desiredWh
