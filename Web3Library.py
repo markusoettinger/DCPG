@@ -32,13 +32,13 @@ def connectContract(web3):
     contractabi = '[{"constant": false, "inputs": [{"internalType": "uint256", "name": "num", "type": "uint256"}], "name": "store", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function"}, {"constant": true, "inputs": [], "name": "retrieve", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "payable": false, "stateMutability": "view", "type": "function"}]'
     return web3.eth.contract(address=web3.toChecksumAddress(contractaddress), abi=contractabi)
 
-def startCharching(web3, contract, df_accounts, userId, chargerId, startTime, estimateDuration, desiredWh):
-    P_charger = 10000 #Watt --> example for calculating max Flex to pay
+def startCharching(web3, contract, df_accounts, userId, chargerId, startTime, estimateDuration, desiredkWh):
+    P_charger = 3.5 #Watt --> example for calculating max Flex to pay
     #estimateDuration evtl. umwandeln
-    flexWh = desiredWh - (P_charger * (estimateDuration/60))
+    flexWh = desiredkWh - (P_charger * (estimateDuration/60)) + 10
     value = flexWh * (1e18)
     fromAddress = df_accounts.iloc(userId)
-    hash = contract.functions.startCharching(userId, chargerId, startTime, estimateDuration, desiredWh).transact({'from': fromAddress, 'value': value})
+    hash = contract.functions.startCharching(userId, chargerId, startTime, estimateDuration, desiredkWh).transact({'from': fromAddress, 'value': value})
     web3.eth.waitforTransactionReciept(hash)
     return
 

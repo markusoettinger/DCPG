@@ -1,17 +1,25 @@
 import pandas as pd
+import numpy as np
 
 
-def run():
+def parse_csv():
 
     df = pd.read_csv(
         "./publicInfrastructure.csv", parse_dates=["connectionTime"]
     )
+    df_app_csv = df[["userID", "Station_ID", "connectionTime", "ChargingTime[mins]", "DesiredkWh[kWh]"]]
+    #time_deviation to simulate difference between estimated and real charging time
+    time_deviation = np.random.normal(1.0, 0.15, df_app_csv.shape[0])
+    df_app_csv["ChargingTime[mins]"] = df_app_csv["ChargingTime[mins]"] * time_deviation
+
     df["ChargingTime[mins]"] = pd.to_timedelta(df["ChargingTime[mins]"], unit="m")
     df["endtime"] = df["connectionTime"] + df["ChargingTime[mins]"]
     df["period"] = df.apply(
         lambda row: pd.Interval(row["connectionTime"], row["endtime"]), axis=1
     )
-    df = df.set_index("connectionTime")
+    df_server_csv = df[["userID", "Station_ID", "connectionTime", "endtime", "kWhDelivered[kWh]", "Flex[kWh]"]]
+    df_app_csv = df.set_index("connectionTime")
+    """
     print(df.head(20))
     print(df.info())
     print(df["Flex[kWh]"].sum())
@@ -23,7 +31,10 @@ def run():
     mask = (df.index >= start_date) & (df.index <= end_date)
     print(df[mask])
     print(df[mask]['Flex[kWh]'].sum())
+    """
+    return df_app_csv, df_server_csv
+
 
 
 if __name__ == "__main__":
-    run()
+    parse_csv()
