@@ -18,6 +18,7 @@ def parse_csv():
         lambda row: pd.Interval(row["connectionTime"], row["endtime"]), axis=1
     )
     df_server_csv = df[["userID", "Station_ID", "connectionTime", "endtime", "kWhDelivered[kWh]", "Flex[kWh]"]]
+    df_server_csv = df_server_csv.set_index(("connectionTime"))
     df_app_csv = df.set_index("connectionTime")
     """
     print(df.head(20))
