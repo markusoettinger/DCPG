@@ -3,8 +3,8 @@ import parse_csv
 import pandas as pd
 import time
 
-df_app_csv, df_server_csv = parse_csv
-simEnd = df_app_csv["connectionTime"].max()
+df_app_csv, df_server_csv = parse_csv.run()
+simEnd = df_app_csv.index.max()
 
 # connect to Blockchain and set defaultAccount to faucet account
 web3 = connect(True)
@@ -13,14 +13,14 @@ contract = connectContract(web3)
 # initialize account list
 df_accounts = pd.DataFrame([], columns=["userID", "Address"])
 
-simTimestamp = df_app_csv["connectionTime"].min() - pd.Timedelta(minutes=20)
-simStart = [pd.Timestamp.today(), simTimestamp, 'Simulation Start', '-', '-', '-']
+simTimestamp = df_app_csv.index.min() - pd.Timedelta(minutes=20)
+simStart = [[pd.Timestamp.today(), simTimestamp, 'Simulation Start', '-', '-', '-']]
 columns = ["Timestamp", "SimTimestamp", "Eventtype", "userID", "Hash", "Value"]
 
 simLog = pd.DataFrame(simStart, columns=columns)
 
 # Timefactor maps total csv Timedelta to a simulationtime of 24 hours
-timefactor = 24 / ((df_app_csv["connectionTime"].max() - simTimestamp).total_seconds() / 3600)
+timefactor = 24 / ((df_app_csv.index.max() - simTimestamp).total_seconds() / 3600)
 
 nextTimestamp = [0, 0, simTimestamp + pd.Timedelta(minutes=10)]
 
@@ -64,7 +64,7 @@ while simTimestamp < simEnd:
         # call_inCharging()
         nextTimestamp[2] = simTimestamp + pd.Timedelta(minutes=10)
 
-    nextTimestamp[0] = df_app_csv[df_app_csv["connectionTime"] > simTimestamp]["ConnectionTime"].min()
+    nextTimestamp[0] = df_app_csv[df_app_csv.index > simTimestamp].index.min()
     nextTimestamp[1] = df_server_csv[df_server_csv["endtime"] > simTimestamp]["endtime"].min()
 
     looptime = time.time() - loopstart

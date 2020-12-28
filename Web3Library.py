@@ -10,6 +10,7 @@ def connect(ganache):
     else:
         rpc_server = ganache
     web3 = Web3(HTTPProvider(rpc_server))
+    web3.eth.defaultAccount(web3.eth.accounts[0])
     return web3
 
 
@@ -33,7 +34,7 @@ def newAccount(web3, userId, df_accounts):
         df_accounts = df_accounts.append({'userID': userId, 'Address': newAddress}, ignore_index=True)
         df_accounts.to_csv('accountList.csv')
         # FaucetTransaction
-        transact(web3, newAddress, 'Faucet', 1e21)
+        transact(web3, newAddress, 'Faucet', 8e19) # need to be changed to highest Flexpayer amount
     return web3, newAddress, df_accounts
 
 

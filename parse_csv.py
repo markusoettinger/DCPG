@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def parse_csv():
+def run():
 
     df = pd.read_csv(
         "./publicInfrastructure.csv", parse_dates=["connectionTime"]
@@ -14,12 +14,12 @@ def parse_csv():
 
     df["ChargingTime[mins]"] = pd.to_timedelta(df["ChargingTime[mins]"], unit="m")
     df["endtime"] = df["connectionTime"] + df["ChargingTime[mins]"]
-    df["period"] = df.apply(
-        lambda row: pd.Interval(row["connectionTime"], row["endtime"]), axis=1
-    )
+    #df["period"] = df.apply(
+    #    lambda row: pd.Interval(row["connectionTime"], row["endtime"]), axis=1
+    #)
     df_server_csv = df[["userID", "Station_ID", "connectionTime", "endtime", "kWhDelivered[kWh]", "Flex[kWh]"]]
     df_server_csv = df_server_csv.set_index(("connectionTime"))
-    df_app_csv = df.set_index("connectionTime")
+    df_app_csv = df_app_csv.set_index("connectionTime")
     """
     print(df.head(20))
     print(df.info())
@@ -38,4 +38,4 @@ def parse_csv():
 
 
 if __name__ == "__main__":
-    parse_csv()
+    run()
