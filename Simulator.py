@@ -50,6 +50,7 @@ while simTimestamp < simEnd:
     if simTimestamp == nextTimestamp[2]:
         # calling contact charging information to update SmartCharging process
         processes = inCharging(contract)
+        print(processes)
         nextTimestamp[2] = simTimestamp + pd.Timedelta(minutes=10)
 
     if simTimestamp in df_server_csv.endtime:

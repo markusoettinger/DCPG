@@ -19,7 +19,7 @@ contract DCPG {
 
     ChargingProcess[] public chargingprocesses; //Array with all charging processes in Charging Station
 
-    function getChargingProcessesLength() public constant returns (uint256 count) {
+    function getChargingProcessesLength() public returns (uint256) {
         return chargingprocesses.length;
     }
 
