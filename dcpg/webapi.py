@@ -53,8 +53,8 @@ async def getBalance():
     return {"accounts json": "balance"}
 
 
-@app.get("/getChargingProcesses")
-async def getBalance():
+@app.get("/inCharging")
+async def inCharging():
     balance = 0
     if not web3connection:
         web3connection = connect()
