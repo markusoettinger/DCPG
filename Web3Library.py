@@ -72,7 +72,7 @@ def stopCharging(web3, contract, df_accounts, userId, chargerId, endTime, flexFl
     return transactionHash
 
 def inCharging(contract):
-    numberCharging = contract.functions.getchargingprocesseslength().call()
+    numberCharging = contract.functions.getChargingProcessesLength().call()
     processes = []
     varNames = ["userID", "chargerID", "chargee", "startTime", "estimatedDuration", "availableFlex", "desiredWh"]
     for i in range(numberCharging):
