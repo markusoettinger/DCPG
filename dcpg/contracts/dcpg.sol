@@ -1,4 +1,4 @@
-pragma solidity >=0.6.0 <0.7.0;
+pragma solidity >=0.7.0 <0.8.0;
 
 /**
  * @title DCPG
@@ -18,6 +18,10 @@ contract DCPG {
     address public godwin;
 
     ChargingProcess[] public chargingprocesses; //Array with all charging processes in Charging Station
+
+    function getChargingProcessesLength() public constant returns (uint256 count) {
+        return chargingprocesses.length;
+    }
 
     /**
      * @dev Definition of which charging units are part of charging station
