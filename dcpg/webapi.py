@@ -60,6 +60,7 @@ async def inCharging():
         web3connection = connect()
     return {"processing json": "balance"}
 
+
 @app.get("/balance/{address}")
 async def getBalance(address: str):
     balance = 0
@@ -96,13 +97,14 @@ async def startCharging(userId: str, userName: str):
     # )
     return {"address": "test"}
 
+
 @app.get("/stopCharging/{userId}/{userName}")
 async def startCharging(userId: str, userName: str):
     if not web3connection:
         web3connection = connect()
 
     # value, transactionHash = stopCharging(
-#web3, contract, df_accounts, userId, chargerId, endTime, flexFlow, chargedkWh
+    # web3, contract, df_accounts, userId, chargerId, endTime, flexFlow, chargedkWh
     # )
     return {"address": "test"}
 
