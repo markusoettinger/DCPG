@@ -47,6 +47,11 @@ while simTimestamp < simEnd:
                                 "Hash": transactionHash,
                                 "Value": value}, ignore_index=True)
 
+    if simTimestamp == nextTimestamp[2]:
+        # calling contact charging information to update SmartCharging process
+        processes = inCharging(contract)
+        nextTimestamp[2] = simTimestamp + pd.Timedelta(minutes=10)
+
     if simTimestamp in df_server_csv.endtime:
         # Server is receiving stopped charging signal from charging-Station and activates stopCharging function
         # contract payments to Flexibility customers
@@ -59,11 +64,6 @@ while simTimestamp < simEnd:
                                 "userID": process.userID,
                                 "Hash": transactionHash,
                                 "Value": process["Flex[kWh]"]}, ignore_index=True)
-
-    if simTimestamp == nextTimestamp[2]:
-        # calling contact charging information to update SmartCharging process
-        # call_inCharging()
-        nextTimestamp[2] = simTimestamp + pd.Timedelta(minutes=10)
 
     nextTimestamp[0] = df_app_csv[df_app_csv.index > simTimestamp].index.min()
     nextTimestamp[1] = df_server_csv[df_server_csv["endtime"] > simTimestamp]["endtime"].min()
