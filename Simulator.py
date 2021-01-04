@@ -31,14 +31,15 @@ while simTimestamp < simEnd:
         # User App gets new charging process and transacts this charging process to the smart contract
         process = df_app_csv.loc[simTimestamp]
         if process.userID not in df_accounts.userID:
-            web3, newAddress, df_accounts = newAccount(process.userID)
+            web3, newAddress, df_accounts = newAccount(web3, process.userID, df_accounts)
             simLog = simLog.append({"Timestamp": pd.Timestamp.today(),
                                     "SimTimestamp": simTimestamp,
                                     "Eventtype": 'Create Account',
                                     "userID": process.userID,
                                     "Value": 1000}, ignore_index=True)
-        value, transactionHash = startCharching(web3, contract, df_accounts, process.userID, process.Station_ID,
-                               process.connectionTime, process["ChargingTime[mins]"], process["DesiredkWh[kWh]"])
+        value, transactionHash = startCharging(web3, contract, df_accounts, process.userID, process.Station_ID,
+                                               process.name, process["ChargingTime[mins]"],
+                                               process["DesiredkWh[kWh]"])
         simLog = simLog.append({"Timestamp": pd.Timestamp.today(),
                                 "SimTimestamp": simTimestamp,
                                 "Eventtype": 'StartCharging',
@@ -47,10 +48,10 @@ while simTimestamp < simEnd:
                                 "Value": value}, ignore_index=True)
 
     if simTimestamp in df_server_csv.endtime:
-        # Server is receiving stopped charging signal from charging-Station and activates stopCharching function
+        # Server is receiving stopped charging signal from charging-Station and activates stopCharging function
         # contract payments to Flexibility customers
         process = df_server_csv[df_server_csv.endtime == simTimestamp]
-        transactionHash = stopCharching(web3, contract, df_accounts, process.userID, process.Station_ID, process.endtime,
+        transactionHash = stopCharging(web3, contract, df_accounts, process.userID, process.Station_ID, process.endtime,
                                         process["Flex[kWh]"], process["kWhDelivered[kWh]"])
         simLog = simLog.append({"Timestamp": pd.Timestamp.today(),
                                 "SimTimestamp": simTimestamp,
