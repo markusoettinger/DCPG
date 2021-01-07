@@ -1,4 +1,4 @@
-from Web3Library import *
+from Web3Library_web import w3Library
 import parse_csv
 import pandas as pd
 import time
@@ -7,9 +7,13 @@ df_app_csv, df_server_csv = parse_csv.run()
 simEnd = df_app_csv.index.max()
 
 # connect to Blockchain and set defaultAccount to faucet account
-web3 = connect(True)
-# connect to SmartContract
-contract = connectContract(web3)
+instance = w3Library()
+instance.transact(toAddress="pal",value=10)
+#web3 = connect(True)
+# # connect to SmartContract
+#contract = connectContract(web3)
+contract = instance.contract
+instance.accounts
 # initialize account list
 df_accounts = pd.DataFrame([], columns=["userID", "Address"])
 
@@ -53,12 +57,12 @@ while simTimestamp < simEnd:
         print(processes)
         nextTimestamp[2] = simTimestamp + pd.Timedelta(minutes=10)
 
-    if simTimestamp in df_server_csv.endtime:
+    if df_server_csv[df_server_csv.endtime == simTimestamp].shape[0] > 0:
         # Server is receiving stopped charging signal from charging-Station and activates stopCharging function
         # contract payments to Flexibility customers
         process = df_server_csv[df_server_csv.endtime == simTimestamp]
-        transactionHash = stopCharging(web3, contract, df_accounts, process.userID, process.Station_ID, process.endtime,
-                                        process["Flex[kWh]"], process["kWhDelivered[kWh]"])
+        transactionHash = stopCharging(web3, contract, df_accounts, process.iat[0,0], process.iat[0,1], process.iat[0,2],
+                                        process.iat[0,4], process.iat[0,3])
         simLog = simLog.append({"Timestamp": pd.Timestamp.today(),
                                 "SimTimestamp": simTimestamp,
                                 "Eventtype": 'StopCharging',

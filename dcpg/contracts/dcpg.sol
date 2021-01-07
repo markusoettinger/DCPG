@@ -57,7 +57,7 @@ contract DCPG {
         require(msg.sender == godwin, "Only godwin can stop charging process.");
         uint256 index = 0;
         bool found = false;
-
+        //Flexflow provided in Wei
         for (uint256 x = 0; x < chargingprocesses.length; x++) {
             if (
                 keccak256(abi.encodePacked(chargingprocesses[x].chargerID)) ==
@@ -70,7 +70,6 @@ contract DCPG {
         }
         require(found, "Charger ID not found.");
         //+Flexflow == chargee gets flextokens
-        //Flexflow in Wei
         //checken ob genug tokens im wallet vorhanden
 
         //+availableFlex == Kunden will boost (Vorstreckung); Flexflow == Auszahlung vom Godwin (Negativ zum Verbrauch vom Flex)

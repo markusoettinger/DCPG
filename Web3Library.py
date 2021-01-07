@@ -41,7 +41,7 @@ def newAccount(web3, userId, df_accounts):
 
 
 def connectContract(web3):
-    contractaddress = '0xC9EB603b3CD3f0a6Bd13FC05D13f62b2C03C04f2'
+    contractaddress = '0x23A03E0B5fE109eFa662C8324AFF749F9BBB24da'
     contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
     return web3.eth.contract(address=web3.toChecksumAddress(contractaddress), abi=contractabi)
 
@@ -53,7 +53,7 @@ def startCharging(web3, contract, df_accounts, userId, chargerId, startTime, est
     value = int(flexWh * 1e18)
     if value < 0:
         value = 0
-    fromAddress = df_accounts[df_accounts.userID == userId].Address[0]
+    fromAddress = df_accounts[df_accounts.userID == userId].iat[0,1]
     startTime = (startTime - pd.Timestamp("1970-01-01", tz='UTC')) // pd.Timedelta('1s')  # to unix timestamp
     desiredWh = int(desiredkWh * 1000)
     transactionHash = contract.functions.startCharging(userId, chargerId, startTime, int(round(estimateDuration.total_seconds(), 0)),
@@ -63,11 +63,11 @@ def startCharging(web3, contract, df_accounts, userId, chargerId, startTime, est
 
 
 def stopCharging(web3, contract, df_accounts, userId, chargerId, endTime, flexFlow, chargedkWh):
-    fromAddress = df_accounts[df_accounts.userID == userId].Address[0]
+    fromAddress = df_accounts[df_accounts.userID == userId].iat[0,1]
     endTime = (endTime - pd.Timestamp("1970-01-01", tz='UTC')) // pd.Timedelta('1s')  # to unix timestamp
     chargedWh = int(chargedkWh * 1000)
-    transactionHash = contract.functions.stopCharging(userId, chargerId, endTime, flexFlow, chargedWh).transact(
-        {'from': fromAddress})
+    flexFlow = int(flexFlow * 1e18)
+    transactionHash = contract.functions.stopCharging(userId, chargerId, endTime, flexFlow, chargedWh).transact()
     web3.eth.waitForTransactionReceipt(transactionHash)
     return transactionHash
 
