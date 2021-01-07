@@ -1,18 +1,18 @@
+import random
 from typing import Optional
 
-import web3
-from Web3Library import *
 import uvicorn
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.responses import RedirectResponse
-import random
-
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-app = FastAPI()
+from Web3Library_web import W3Library
 
+app = FastAPI()
+instance = W3Library()
+if not instance.web3:
+    raise ConnectionError("Could not connect to rpc Server")
 connected = False
 web3connection = None
 
@@ -46,67 +46,54 @@ class Item(BaseModel):
 # async def front():
 #    return RedirectResponse(url='build')
 @app.get("/getAccounts")
-async def getBalance():
-    balance = 0
-    if not web3connection:
-        web3connection = connect()
-    return {"accounts json": "balance"}
+async def getAccounts():
+
+    return {"accounts json": instance.accounts}
 
 
 @app.get("/inCharging")
 async def inCharging():
-    balance = 0
-    if not web3connection:
-        web3connection = connect()
-    return {"processing json": "balance"}
+
+    dicty = instance.inCharging()
+    json = json.dumps(dicty)
+    return {"processing json": json}
 
 
-@app.get("/balance/{address}")
-async def getBalance(address: str):
-    balance = 0
-    if not web3connection:
-        web3connection = connect()
+@app.get("/balance/{userId}")
+async def getBalance(userId: str):
+    try:
+        balance = instance.getBalanceForUser(userId)
+        return {"balance": balance*1e-18}
+    except IndexError:
+        raise HTTPException(status_code=404, detail="UserId not known")
 
-    balance = getBalance(web3connection, address)
-    return {"balance": balance}
 
-
-@app.get("/createAccount/{userId}/{userName}")
-async def newAccount(userId: str, userName: str):
-    if not web3connection:
-        web3connection = connect()
-
-    address = newAccount(web3connection, userId)
+@app.get("/createAccount/{userId}")
+async def newAccount(userId: str):
+    address = instance.newAccount(userId, )
     return {"address": address}
 
 
-@app.get("/startCharging/{userId}/{userName}")
-async def startCharging(userId: str, userName: str):
-    if not web3connection:
-        web3connection = connect()
+@app.get("/startCharging/{userId}/{chargerId}/{estimatedDuration}/{desiredkWh}/{flex}")
+async def startCharging(userId: str, chargerId: str, estimatedDuration: int, desiredkWh: float,
+                        flex: float):
+    startTime = pd.Timestamp.today()
+    estimatedDuration = pd.Timedelta(estimatedDuration)
 
-    # value, transactionHash = startCharging(
-    #     web3connection,
-    #     contract,
-    #     df_accounts,
-    #     userId,
-    #     chargerId,
-    #     startTime,
-    #     estimateDuration,
-    #     desiredkWh,
-    # )
-    return {"address": "test"}
+    flex, transactionHash = instance.startCharging(userId=userId, chargerId=chargerId, startTime=startTime, estimateDuration=estimatedDuration,
+                           desiredkWh=desiredkWh, flex=flex)
+
+    return {"used_flex": flex*1e-18, "transaction_hash": transactionHash, "startTime": startTime}
 
 
-@app.get("/stopCharging/{userId}/{userName}")
-async def startCharging(userId: str, userName: str):
-    if not web3connection:
-        web3connection = connect()
+@app.get("/stopCharging/{userId}/{flexFlow}/{chargedkWh}")
+async def stopCharging(userId: str, flexFlow: float, chargedkWh:float):
+    endTime = pd.Timestamp.today()
 
-    # value, transactionHash = stopCharging(
-    # web3, contract, df_accounts, userId, chargerId, endTime, flexFlow, chargedkWh
-    # )
-    return {"address": "test"}
+    transactionHash = stopCharging(
+    userId,  endTime, flexFlow, chargedkWh
+    )
+    return {"transaction_hash": transactionHash}
 
 
 @app.get("/rand")

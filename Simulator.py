@@ -1,4 +1,4 @@
-from Web3Library_web import w3Library
+from dcpg.Web3Library_web import W3Library
 import parse_csv
 import pandas as pd
 import time
@@ -7,7 +7,7 @@ df_app_csv, df_server_csv = parse_csv.run()
 simEnd = df_app_csv.index.max()
 
 # connect to Blockchain and set defaultAccount to faucet account
-instance = w3Library()
+instance = W3Library()
 instance.transact(toAddress="pal",value=10)
 #web3 = connect(True)
 # # connect to SmartContract
@@ -34,14 +34,14 @@ while simTimestamp < simEnd:
     if simTimestamp in df_app_csv.index:
         # User App gets new charging process and transacts this charging process to the smart contract
         process = df_app_csv.loc[simTimestamp]
-        if process.userID not in df_accounts.userID:
-            web3, newAddress, df_accounts = newAccount(web3, process.userID, df_accounts)
-            simLog = simLog.append({"Timestamp": pd.Timestamp.today(),
-                                    "SimTimestamp": simTimestamp,
-                                    "Eventtype": 'Create Account',
-                                    "userID": process.userID,
-                                    "Value": 1000}, ignore_index=True)
-        value, transactionHash = startCharging(web3, contract, df_accounts, process.userID, process.Station_ID,
+
+        instance.newAccount(process.userID)
+        simLog = simLog.append({"Timestamp": pd.Timestamp.today(),
+                                "SimTimestamp": simTimestamp,
+                                "Eventtype": 'Create Account',
+                                "userID": process.userID,
+                                "Value": 1000}, ignore_index=True)
+        value, transactionHash = instance.startCharging( contract,  process.userID, process.Station_ID,
                                                process.name, process["ChargingTime[mins]"],
                                                process["DesiredkWh[kWh]"])
         simLog = simLog.append({"Timestamp": pd.Timestamp.today(),
