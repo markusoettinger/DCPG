@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "start": "snowpack dev",
+    "build": "snowpack build",
+    "test": "echo \"This template does not include a test runner by default.\" && exit 1"
+  },
+  "devDependencies": {
+    "@snowpack/plugin-svelte": "^3.3.0",
+    "rollup-plugin-postcss": "^3.1.8",
+    "rollup-plugin-svelte": "^7.0.0",
+    "sass": "^1.29.0",
+    "snowpack": "^2.17.1",
+    "svelte-material-ui": "^1.0.0"
+  },
+  "dependencies": {
+    "svelte": "^3.31.0"
+  }
+}

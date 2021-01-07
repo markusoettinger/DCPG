@@ -37,3 +37,7 @@ pytest
 ## Format Python
 
 To align formating the formater "Black" is used for all Python files. Please format your files before committing.
+
+
+
+## reminder to add frontend setup
