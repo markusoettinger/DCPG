@@ -6,11 +6,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-
 from Web3Library_web import W3Library
 
 app = FastAPI()
+print("before instance")
 instance = W3Library()
+print("after instance")
 if not instance.web3:
     raise ConnectionError("Could not connect to rpc Server")
 connected = False

@@ -2,6 +2,10 @@
 
 from web3 import Web3
 
+
+class test:
+    def cooltest(self):
+        return 1
 #%%
 
 weby = Web3(Web3.HTTPProvider("https://volta-rpc.energyweb.org"))

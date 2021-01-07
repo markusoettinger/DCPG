@@ -3,30 +3,37 @@ from web3 import Web3, HTTPProvider
 
 
 class W3Library:
-    def __init__(self, url=None, should_log=False):
-        self.web3 = self.connect(url)
+    def __init__(self, should_log=False):
+        self.log = []
+        self.should_log = should_log
+        self.web3 = self.connect()
         self.contract = self.connectContract()
         self.accounts = {}
 
-        self.log = []
-        self.should_log = should_log
 
     def connect(self, rpc_server='HTTP://127.0.0.1:7545'):
         try:
-
+            print("trying to connect")
+            print(rpc_server)
             web3 = Web3(HTTPProvider(rpc_server))
+            print("did connect")
+            print(web3.eth.accounts)
             web3.eth.defaultAccount = web3.eth.accounts[0]
-            if self.sould_log:
+            print("set account")
+            if self.should_log:
                 self.log.append(f'Connection to {rpc_server} was successful')
+            print("did logging")
             return web3
         except Exception as e:
+            print("Error connecting")
+
             self.log.append(f'Connection to {rpc_server} failed with Error: {e}')
             return False
 
     def connectContract(self):
         contractaddress = '0x23A03E0B5fE109eFa662C8324AFF749F9BBB24da'
         contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
-        if self.sould_log:
+        if self.should_log:
             self.log.append(f'Contract connection to {contractaddress} was successful')
         return self.web3.eth.contract(address=self.web3.toChecksumAddress(contractaddress), abi=contractabi)
 
@@ -35,7 +42,7 @@ class W3Library:
 
     def getBalanceForUser(self, userId):
         if userId in self.accounts:
-            return self.web3.eth.getBalance(self.accounts[userId])
+            return self.web3.eth.getBalance(self.accounts[userId]["address"])
         raise IndexError("UserId not known in Accounts")
 
     def transact(self, toAddress, fromAddress, value):
@@ -44,7 +51,7 @@ class W3Library:
             ret = self.web3.eth.sendTransaction({'to': toAddress, 'value': value})
         else:
             ret = self.web3.eth.sendTransaction({'to': toAddress, 'from': fromAddress, 'value': value})
-        if self.sould_log:
+        if self.should_log:
             self.log.append(f'Transacted {value} from {fromAddress} to {toAddress}')
         return Web3.toHex(ret)
 
@@ -57,7 +64,7 @@ class W3Library:
             # df_accounts.to_csv('accountList.csv')
             # FaucetTransaction
             self.transact(newAddress, 'Faucet', 3e20)  # need to be changed to highest Flexpayer amount
-            if self.sould_log:
+            if self.should_log:
                 self.log.append(f'Account of {userId} at Address {newAddress} created')
         return newAddress
 
@@ -81,7 +88,7 @@ class W3Library:
                                                            int(round(estimateDuration.total_seconds(), 0)),
                                                            desiredWh).transact({'from': fromAddress, 'value': flex})
         self.web3.eth.waitForTransactionReceipt(transactionHash)
-        if self.sould_log:
+        if self.should_log:
             self.log.append(f'{userId} started charging {fromAddress} to {toAddress}')
         return flex, transactionHash
 
