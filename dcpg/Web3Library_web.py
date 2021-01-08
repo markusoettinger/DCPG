@@ -7,11 +7,11 @@ t = "%d-%m-%Y%H-%M-%S"
 
 contractaddress = '0xe31DF98FDB0dBDf46Fcc54633b77eEb189eD3Ed7'
 contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
+log.basicConfig(level=log.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers= [log.FileHandler(f'../logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'), log.StreamHandler()])
 
 
 class W3Library:
     def __init__(self, should_log=False):
-        log.basicConfig(filename=f'../logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log', level=log.INFO)
         log.info(f"{datetime.now().strftime(t)}-------- Simulation started")
         self.web3 = self.connect()
         self.contract = self.connectContract()
@@ -21,16 +21,16 @@ class W3Library:
         try:
             web3 = Web3(HTTPProvider(rpc_server))
             web3.eth.defaultAccount = web3.eth.accounts[0]
-            log.info(f"{datetime.now().strftime(t)}-------- connected to rpc-server: {rpc_server}")
-            log.info(f"{datetime.now().strftime(t)}-------- Default account: {web3.eth.accounts[0]}")
+            log.info(f"connected to rpc-server: {rpc_server}")
+            log.info(f"Default account: {web3.eth.accounts[0]}")
             return web3
         except Exception as e:
             print("Error connecting")
-            log.info(f"{datetime.now().strftime(t)}-------- Error connecting")
+            log.info(f"Error connecting")
             return False
 
     def connectContract(self):
-        log.info(f"{datetime.now().strftime(t)}-------- Connected to SmartContract with address: {contractaddress}")
+        log.info(f"Connected to SmartContract with address: {contractaddress}")
         return self.web3.eth.contract(address=self.web3.toChecksumAddress(contractaddress), abi=contractabi)
 
     def getBalance(self, address):
@@ -48,7 +48,7 @@ class W3Library:
         else:
             ret = self.web3.eth.sendTransaction({'to': toAddress, 'from': fromAddress, 'value': value})
         log.info(
-            f"{datetime.now().strftime(t)}-------- Transaction of {value * 1e-18} ether from {fromAddress} to {toAddress}")
+            f"Transaction of {value * 1e-18} ether from {fromAddress} to {toAddress}")
         return Web3.toHex(ret)
 
     def newAccount(self, userId):
@@ -57,7 +57,7 @@ class W3Library:
             newAddress = self.web3.geth.personal.new_account(str(userId))
             self.web3.geth.personal.unlockAccount(newAddress, str(userId), 0)
             self.accounts[userId] = {'userID': userId, 'address': newAddress, "chargerId": None}
-            log.info(f"{datetime.now().strftime(t)}-------- New account {newAddress} created for user {userId}")
+            log.info(f"New account {newAddress} created for user {userId}")
             # FaucetTransaction
             self.transact(newAddress, 'Faucet', 3e20)  # need to be changed to highest Flexpayer amount
 
@@ -86,7 +86,7 @@ class W3Library:
             {'from': fromAddress, 'value': flex})
         self.web3.eth.waitForTransactionReceipt(transactionHash)
         log.info(
-            f"{datetime.now().strftime(t)}-------- User {userId} started charging at {chargerId} and payed {round(flex * 1e-18, 3)} to the contract. Simulation Time: {str(startTime)}")
+            f"User {userId} started charging at {chargerId} and payed {round(flex * 1e-18, 3)} to the contract. Simulation Time: {str(startTime)}")
         return flex, transactionHash
 
     def stopCharging(self, userId, endTime, flexFlow, chargedkWh):
@@ -95,8 +95,7 @@ class W3Library:
         transactionHash = self.contract.functions.stopCharging(userId, self.accounts[userId]["chargerId"],
                                                                int(endTime.timestamp()), flexFlow, chargedWh).transact()
         self.web3.eth.waitForTransactionReceipt(transactionHash)
-        log.info(
-            f"{datetime.now().strftime(t)}-------- User {userId} stopped charging at {self.accounts[userId]['chargerId']}. Simulation Time: {str(endTime)}")
+        log.info(f"User {userId} stopped charging at {self.accounts[userId]['chargerId']}. Simulation Time: {str(endTime)}")
         self.accounts[userId]["chargerId"] = None
 
         return transactionHash
@@ -104,7 +103,8 @@ class W3Library:
     def inCharging(self):
         numberCharging = self.contract.functions.getChargingProcessesLength().call()
         processes = []
-        log.info(f"{datetime.now().strftime(t)}-------- Currently are {numberCharging} charging processes active. \n                        Contract Balance: {rount(self.getBalance(contractaddress)*1e-18,3)} ether")
+        log.info(
+            f"{datetime.now().strftime(t)}-------- Currently are {numberCharging} charging processes active. Contract Balance: {round(self.getBalance(contractaddress) * 1e-18, 3)} ether")
         varNames = ["userID", "chargerID", "chargee", "startTime", "estimatedDuration", "availableFlex", "desiredWh"]
         for i in range(numberCharging):
             process = self.contract.functions.chargingprocesses(i).call()
