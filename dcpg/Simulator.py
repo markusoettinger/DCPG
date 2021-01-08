@@ -2,7 +2,7 @@ import time
 
 import pandas as pd
 
-from dcpg import parse_csv
+import parse_csv
 from Web3Library_web import W3Library
 
 df_app_csv, df_server_csv = parse_csv.run()
