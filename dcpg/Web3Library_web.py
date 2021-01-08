@@ -80,10 +80,19 @@ class W3Library:
             flex = 0
 
         desiredWh = int(desiredkWh * 1000)
-        transactionHash = self.contract.functions.startCharging(userId, chargerId, int(startTime.timestamp()),
-                                                                int(round(estimateDuration.total_seconds(), 0)),
-                                                                desiredWh).transact(
-            {'from': fromAddress, 'value': flex})
+        try:
+            transactionHash = self.contract.functions.startCharging(userId, chargerId, int(startTime.timestamp()),
+                                                                    int(round(estimateDuration.total_seconds(), 0)),
+                                                                    desiredWh).transact(
+                {'from': fromAddress, 'value': flex})
+        except ValueError:
+            log.info(f"User {userId} doesn't have enough founds to send {round(flex*1e18,3)} ether. Current account balance: {round(self.getBalance(fromAddress) * 1e-18, 3)} ether ")
+            self.transact(fromAddress, 'Faucet', 3e20)
+            log.info(f"User {userId} recharged it's account with 300 ether due to insufficient balance for transaction")
+            transactionHash = self.contract.functions.startCharging(userId, chargerId, int(startTime.timestamp()),
+                                                                    int(round(estimateDuration.total_seconds(), 0)),
+                                                                    desiredWh).transact(
+                {'from': fromAddress, 'value': flex})
         self.web3.eth.waitForTransactionReceipt(transactionHash)
         log.info(
             f"User {userId} started charging at {chargerId} and payed {round(flex * 1e-18, 3)} to the contract. Simulation Time: {str(startTime)}")
