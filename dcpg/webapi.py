@@ -9,13 +9,9 @@ from pydantic import BaseModel
 from Web3Library_web import W3Library
 
 app = FastAPI()
-print("before instance")
 instance = W3Library()
-print("after instance")
 if not instance.web3:
     raise ConnectionError("Could not connect to rpc Server")
-connected = False
-web3connection = None
 
 # app.mount("/front", StaticFiles(directory="Front/public", html=True), name="front")
 origins = [

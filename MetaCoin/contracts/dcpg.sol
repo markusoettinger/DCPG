@@ -82,7 +82,10 @@ contract DCPG {
             uint256(int256(chargingprocesses[index].availableFlex) + flexFlow);
         address payable chargee = payable(chargingprocesses[index].chargee);
         _burn(index);
-        chargee.transfer(payout);
+        if (payout > 0) {
+            chargee.transfer(payout);
+        }
+        
     }
 
     /**
