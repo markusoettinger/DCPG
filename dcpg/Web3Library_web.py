@@ -1,11 +1,14 @@
+from datetime import datetime
 import pandas as pd
 from web3 import Web3, HTTPProvider
+import logging as log
+t = "%d-%m-%Y%H-%M-%S"
+log.basicConfig(filename=f'logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log', level=log.INFO)
+log.info(f"{datetime.now().strftime(t)}-------- Simulation started")
 
 
 class W3Library:
     def __init__(self, should_log=False):
-        self.log = []
-        self.should_log = should_log
         self.web3 = self.connect()
         self.contract = self.connectContract()
         self.accounts = {}
@@ -13,28 +16,20 @@ class W3Library:
 
     def connect(self, rpc_server='HTTP://127.0.0.1:7545'):
         try:
-            print("trying to connect")
-            print(rpc_server)
             web3 = Web3(HTTPProvider(rpc_server))
-            print("did connect")
-            print(web3.eth.accounts)
+            log.info(f"{datetime.now().strftime(t)}-------- connected to rpc-server: {rpc_server}")
             web3.eth.defaultAccount = web3.eth.accounts[0]
-            print("set account")
-            if self.should_log:
-                self.log.append(f'Connection to {rpc_server} was successful')
-            print("did logging")
+            log.info(f"{datetime.now().strftime(t)}-------- Default account: {web3.eth.accounts[0]}")
             return web3
         except Exception as e:
             print("Error connecting")
-
-            self.log.append(f'Connection to {rpc_server} failed with Error: {e}')
+            log.info(f"{datetime.now().strftime(t)}-------- Error connecting")
             return False
 
     def connectContract(self):
         contractaddress = '0x23A03E0B5fE109eFa662C8324AFF749F9BBB24da'
         contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
-        if self.should_log:
-            self.log.append(f'Contract connection to {contractaddress} was successful')
+        log.info(f"{datetime.now().strftime(t)}-------- Connected to SmartContract with address: {contractaddress}")
         return self.web3.eth.contract(address=self.web3.toChecksumAddress(contractaddress), abi=contractabi)
 
     def getBalance(self, address):
@@ -51,8 +46,7 @@ class W3Library:
             ret = self.web3.eth.sendTransaction({'to': toAddress, 'value': value})
         else:
             ret = self.web3.eth.sendTransaction({'to': toAddress, 'from': fromAddress, 'value': value})
-        if self.should_log:
-            self.log.append(f'Transacted {value} from {fromAddress} to {toAddress}')
+        log.info(f"{datetime.now().strftime(t)}-------- Transaction of {value*1e-18} ether from {fromAddress} to {toAddress}")
         return Web3.toHex(ret)
 
     def newAccount(self, userId):
@@ -64,8 +58,7 @@ class W3Library:
             # df_accounts.to_csv('accountList.csv')
             # FaucetTransaction
             self.transact(newAddress, 'Faucet', 3e20)  # need to be changed to highest Flexpayer amount
-            if self.should_log:
-                self.log.append(f'Account of {userId} at Address {newAddress} created')
+            log.info(f"{datetime.now().strftime(t)}-------- New account {newAddress} created for user {userId}")
         return newAddress
 
     def startCharging(self, userId, chargerId, startTime, estimateDuration, desiredkWh, flex=None):
@@ -88,8 +81,7 @@ class W3Library:
                                                            int(round(estimateDuration.total_seconds(), 0)),
                                                            desiredWh).transact({'from': fromAddress, 'value': flex})
         self.web3.eth.waitForTransactionReceipt(transactionHash)
-        if self.should_log:
-            self.log.append(f'{userId} started charging {fromAddress} to {toAddress}')
+        log.info(f"{datetime.now().strftime(t)}-------- User {userId} started charging at {chargerId} and payed {flex} to the contract. Simulation Time: {str(startTime)}")
         return flex, transactionHash
 
     def stopCharging(self, userId, endTime, flexFlow, chargedkWh):
@@ -98,7 +90,7 @@ class W3Library:
         transactionHash = self.contract.functions.stopCharging(userId, self.accounts[userId]["chargerId"], int(endTime.timestamp()), flexFlow, chargedWh).transact()
         self.web3.eth.waitForTransactionReceipt(transactionHash)
         self.accounts[userId]["chargerId"] = None
-
+        log.info(f"{datetime.now().strftime(t)}-------- User {userId} stopped charging at {chargerId}. Simulation Time: {str(startTime)}")
         return transactionHash
 
     def inCharging(self):
@@ -108,4 +100,5 @@ class W3Library:
         for i in range(numberCharging):
             process = self.contract.functions.chargingprocesses(i).call()
             processes.append(dict(zip(varNames, process)))
+        log.info(f"{datetime.now().strftime(t)}-------- ")
         return processes

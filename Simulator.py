@@ -8,7 +8,6 @@ simEnd = df_app_csv.index.max()
 
 # connect to Blockchain and set defaultAccount to faucet account
 instance = W3Library()
-instance.transact(toAddress="pal",value=10)
 #web3 = connect(True)
 # # connect to SmartContract
 #contract = connectContract(web3)
