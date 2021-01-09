@@ -5,7 +5,7 @@ import numpy as np
 def run():
 
     df = pd.read_csv(
-        "./publicInfrastructure.csv", parse_dates=["connectionTime"]
+        "../publicInfrastructure.csv", parse_dates=["connectionTime"]
     )
     df["ChargingTime[mins]"] = pd.to_timedelta(df["ChargingTime[mins]"], unit="m")
     df_app_csv = df[["userID", "Station_ID", "connectionTime", "ChargingTime[mins]", "DesiredkWh[kWh]"]]
