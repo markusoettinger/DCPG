@@ -31,6 +31,7 @@ Setting up Ganache with contracts from Trufflesuit
 * setup ganache server with adding project by selecting truffle-config.js in the MetaCoin folder
 * move to MetaCoin folder in the terminal
 * deploy contracts using: ```truffle migrate```
+* redeploying contracts using ```truffle migrate --reset```
 
 ## Test
 
