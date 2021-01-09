@@ -17,8 +17,8 @@ def run():
     #    lambda row: pd.Interval(row["connectionTime"], row["endtime"]), axis=1
     #)
     df_server_csv = df[["userID", "Station_ID", "connectionTime", "endtime", "kWhDelivered[kWh]", "Flex[kWh]"]]
-    df_server_csv = df_server_csv.set_index(("connectionTime"))
-    df_app_csv = df_app_csv.set_index("endtime")
+    df_server_csv = df_server_csv.set_index(("endtime")).sort_index()
+    df_app_csv = df_app_csv.set_index("connectionTime").sort_index()
     """
     print(df.head(20))
     print(df.info())
