@@ -83,12 +83,12 @@ async def startCharging(userId: str, chargerId: str, estimatedDuration: int, des
     return {"used_flex": flex*1e-18, "transaction_hash": transactionHash, "startTime": startTime}
 
 
-@app.get("/stopCharging/{userId}/{flexFlow}/{chargedkWh}")
-async def stopCharging(userId: str, flexFlow: float, chargedkWh:float):
+@app.get("/stopCharging/{userId}/{chargerId}/{flexFlow}/{chargedkWh}")
+async def stopCharging(userId: str, chargerId:str, flexFlow: float, chargedkWh:float):
     endTime = pd.Timestamp.today()
 
     transactionHash = stopCharging(
-    userId,  endTime, flexFlow, chargedkWh
+    userId, chargerId, endTime, flexFlow, chargedkWh
     )
     return {"transaction_hash": transactionHash}
 
