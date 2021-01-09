@@ -18,7 +18,7 @@ contract = instance.contract
 simTimestamp = df_app_csv.index.min() - pd.Timedelta(minutes=20)
 
 # Timefactor maps total csv Timedelta to a simulationtime of 24 hours
-timefactor = 24 / ((df_app_csv.index.max() - simTimestamp).total_seconds() / 3600)
+timefactor = 4 / ((df_app_csv.index.max() - simTimestamp).total_seconds() / 3600)
 
 nextTimestamp = [0, 0, simTimestamp + pd.Timedelta(minutes=10)]
 
