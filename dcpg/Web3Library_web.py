@@ -27,6 +27,7 @@ class W3Library:
         self.web3 = self.connect()
         self.contract = self.connectContract()
         self.accounts = {}
+        self.chargingIds = {}
         self.contract.functions.loadGasBuffer().transact({"value": int(100 * 1e18)})
         log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
 
@@ -94,26 +95,25 @@ class W3Library:
         return
 
     def startCharging(
-        self, userId, chargerId, startTime, estimateDuration, desiredkWh, flex=None
+            self, userId, chargerId, startTime, estimateDuration, desiredkWh, flex=None
     ):
         P_charger = 3.5  # kW --> example for calculating max Flex to pay
         # estimateDuration evtl. umwandeln
         fromAddress = self.accounts[userId]["address"]
-        self.accounts[userId]["chargerId"] = chargerId
         av_balance = self.getBalance(fromAddress)
         # Check balance for amount available
         if flex is None:
             flexWh = (
-                desiredkWh
-                - (P_charger * (estimateDuration.total_seconds() / 3600))
-                + 10
+                    desiredkWh
+                    - (P_charger * (estimateDuration.total_seconds() / 3600))
+                    + 10
             )
             flex = int(flexWh * 1e18)
         if flex > av_balance:
             flex = av_balance
         if flex < 0:
             flex = 0
-        self.accounts[userId]["retainingTokens"] = flex * 1e-18
+        self.chargingIds[chargerId] = {"chargerId": chargerId, "userId": userId, "retainingTokens": flex * 1e-18}
         desiredWh = int(desiredkWh * 1000)
         try:
             transactionHash = self.contract.functions.startCharging(
@@ -125,7 +125,7 @@ class W3Library:
             ).transact({"from": fromAddress, "value": flex})
         except ValueError:
             log.info(
-                f"[LowFunds] User {userId} doesn't have enough founds to send {round(flex*1e-18,3)} ether. Current account balance: {round(self.getBalance(fromAddress) * 1e-18, 3)} ether "
+                f"[LowFunds] User {userId} doesn't have enough founds to send {round(flex * 1e-18, 3)} ether. Current account balance: {round(self.getBalance(fromAddress) * 1e-18, 3)} ether "
             )
             self.transact(fromAddress, "Faucet", 3e20)
             log.info(
@@ -144,7 +144,7 @@ class W3Library:
         )
         return flex, transactionHash
 
-    def stopCharging(self, userId, endTime, flexFlow, chargedkWh):
+    def stopCharging(self, userId, chargerId, endTime, flexFlow, chargedkWh):
         for i in range(2):
             try:
                 chargedWh = int(chargedkWh * 1000)
@@ -152,34 +152,27 @@ class W3Library:
                 oldBalance = self.getBalance(self.accounts[userId]["address"])
                 transactionHash = self.contract.functions.stopCharging(
                     userId,
-                    self.accounts[userId]["chargerId"],
+                    chargerId,
                     int(endTime.timestamp()),
                     flexFlow,
                     chargedWh,
                 ).transact()
                 # self.web3.eth.waitForTransactionReceipt(transactionHash)
                 contract_transaction = (
-                    self.getBalance(self.accounts[userId]["address"]) - oldBalance
-                ) * 1e-18
+                                               self.getBalance(self.accounts[userId]["address"]) - oldBalance
+                                       ) * 1e-18
                 log.info(
-                    f"[StopChar] User {userId} stopped charging at {self.accounts[userId]['chargerId']} with flex used: {round(flexFlow* 1e-18,3)} Simulation Time: {str(endTime)}"
+                    f"[StopChar] User {userId} stopped charging at {self.accounts[userId]['chargerId']} with flex used: {round(flexFlow * 1e-18, 3)} Simulation Time: {str(endTime)}"
                 )
                 log.info(
                     f"[Transact] Contract transacted {round(contract_transaction, 3)} ether to userID {userId}"
                 )
-                if (
-                    abs(
-                        self.accounts[userId]["retainingTokens"]
-                        - contract_transaction
-                        + (flexFlow * 1e-18)
-                    )
-                    > 0.1
-                ):
+                if (abs(self.chargingIds[chargerId]["retainingTokens"] - contract_transaction + (
+                        flexFlow * 1e-18)) > 0.1):
                     log.info(
                         f'[TransErr] Contract transacted wrong amount of tokens {abs(self.accounts[userId]["retainingTokens"] - contract_transaction + (flexFlow * 1e-18))}'
                     )
-                self.accounts[userId]["chargerId"] = None
-                self.accounts[userId]["retainingTokens"] = None
+                self.chargingIds[chargerId] = {"chargerId": chargerId, "userId": None, "retainingTokens": None}
                 return transactionHash
             except SolidityError as e:
                 self.contract.functions.loadGasBuffer().transact(
@@ -191,7 +184,7 @@ class W3Library:
                 )
                 continue
         raise ConnectionError(
-            f"Still got Error at Stop Charging userID {userId}. Flex: {round(flexFlow* 1e-18,3)} Simulation Time: {str(endTime)}"
+            f"Still got Error at Stop Charging userID {userId}. Flex: {round(flexFlow * 1e-18, 3)} Simulation Time: {str(endTime)}"
         )
 
     def inCharging(self, simTime=None):

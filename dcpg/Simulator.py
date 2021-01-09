@@ -55,6 +55,7 @@ while True:
         process = next_server_query[1]
         transactionHash = instance.stopCharging(
             userId=process.userID,
+            chargerId=process.Station_ID,
             endTime=next_server_query[0],
             flexFlow=process["Flex[kWh]"],
             chargedkWh=process["kWhDelivered[kWh]"],
