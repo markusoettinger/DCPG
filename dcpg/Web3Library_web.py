@@ -8,14 +8,14 @@ from web3.exceptions import (
 
 t = "%d-%m-%Y%H-%M-%S"
 
-contractaddress = "0xfAB4f542e13eB5AE96124bD27Ac1368FE07e7fFB"
+contractaddress = "0x156401fa9E15EAa6f071e609c83c8eec2416f1d9"
 contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [],      "name": "loadGasBuffer",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
 # dies if logs folder is missing
 log.basicConfig(
     level=log.INFO,
     format="%(asctime)s %(message)s",
     handlers=[
-        log.FileHandler(f'../logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'),
+        log.FileHandler(f'./logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'),
         log.StreamHandler(),
     ],
 )
@@ -97,6 +97,9 @@ class W3Library:
     def startCharging(
             self, userId, chargerId, startTime, estimateDuration, desiredkWh, flex=None
     ):
+        #sanity check --> is chargerId already occupied
+        if self.chargingIds[chargerId].userId is not None:
+            return None, None
         P_charger = 3.5  # kW --> example for calculating max Flex to pay
         # estimateDuration evtl. umwandeln
         fromAddress = self.accounts[userId]["address"]
@@ -145,6 +148,9 @@ class W3Library:
         return flex, transactionHash
 
     def stopCharging(self, userId, chargerId, endTime, flexFlow, chargedkWh):
+        #sanity check --> chargerId not in use
+        if self.chargingIds[chargerId].userId is None:
+            return None
         for i in range(2):
             try:
                 chargedWh = int(chargedkWh * 1000)
@@ -162,7 +168,7 @@ class W3Library:
                                                self.getBalance(self.accounts[userId]["address"]) - oldBalance
                                        ) * 1e-18
                 log.info(
-                    f"[StopChar] User {userId} stopped charging at {self.accounts[userId]['chargerId']} with flex used: {round(flexFlow * 1e-18, 3)} Simulation Time: {str(endTime)}"
+                    f"[StopChar] User {userId} stopped charging at {chargerId} with flex used: {round(flexFlow * 1e-18, 3)} Simulation Time: {str(endTime)}"
                 )
                 log.info(
                     f"[Transact] Contract transacted {round(contract_transaction, 3)} ether to userID {userId}"
