@@ -98,7 +98,7 @@ class W3Library:
             self, userId, chargerId, startTime, estimateDuration, desiredkWh, flex=None
     ):
         #sanity check --> is chargerId already occupied
-        if self.chargingIds[chargerId].userId is not None:
+        if chargerId in self.chargingIds and self.chargingIds[chargerId]["userId"] is not None:
             return None, None
         P_charger = 3.5  # kW --> example for calculating max Flex to pay
         # estimateDuration evtl. umwandeln
@@ -149,7 +149,7 @@ class W3Library:
 
     def stopCharging(self, userId, chargerId, endTime, flexFlow, chargedkWh):
         #sanity check --> chargerId not in use
-        if self.chargingIds[chargerId].userId is None:
+        if chargerId in self.chargingIds and self.chargingIds[chargerId]["userId"] is None:
             return None
         for i in range(2):
             try:
@@ -176,7 +176,7 @@ class W3Library:
                 if (abs(self.chargingIds[chargerId]["retainingTokens"] - contract_transaction + (
                         flexFlow * 1e-18)) > 0.1):
                     log.info(
-                        f'[TransErr] Contract transacted wrong amount of tokens {abs(self.accounts[userId]["retainingTokens"] - contract_transaction + (flexFlow * 1e-18))}'
+                        f'[TransErr] Contract transacted wrong amount of tokens {abs(self.chargingIds[chargerId]["retainingTokens"] - contract_transaction + (flexFlow * 1e-18))}'
                     )
                 self.chargingIds[chargerId] = {"chargerId": chargerId, "userId": None, "retainingTokens": None}
                 return transactionHash
