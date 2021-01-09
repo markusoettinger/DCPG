@@ -145,7 +145,7 @@ class W3Library:
         return flex, transactionHash
 
     def stopCharging(self, userId, endTime, flexFlow, chargedkWh):
-        for i in range(1):
+        for i in range(2):
             try:
                 chargedWh = int(chargedkWh * 1000)
                 flexFlow = int(flexFlow * 1e18)
@@ -181,10 +181,11 @@ class W3Library:
                 self.accounts[userId]["chargerId"] = None
                 self.accounts[userId]["retainingTokens"] = None
                 return transactionHash
-            except SolidityError:
+            except SolidityError as e:
                 self.contract.functions.loadGasBuffer().transact(
                     {"value": int(100 * 1e18)}
                 )
+                log.error(e)
                 log.info(
                     f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether"
                 )
