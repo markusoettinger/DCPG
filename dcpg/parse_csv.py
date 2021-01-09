@@ -5,7 +5,7 @@ import numpy as np
 def run():
 
     df = pd.read_csv(
-        "../publicInfrastructure.csv", parse_dates=["connectionTime"]
+        "./publicInfrastructure.csv", parse_dates=["connectionTime"]
     )
     df["ChargingTime[mins]"] = pd.to_timedelta(df["ChargingTime[mins]"], unit="m")
     df_app_csv = df[["userID", "Station_ID", "connectionTime", "ChargingTime[mins]", "DesiredkWh[kWh]"]]
@@ -18,7 +18,7 @@ def run():
     #)
     df_server_csv = df[["userID", "Station_ID", "connectionTime", "endtime", "kWhDelivered[kWh]", "Flex[kWh]"]]
     df_server_csv = df_server_csv.set_index(("connectionTime"))
-    df_app_csv = df_app_csv.set_index("connectionTime")
+    df_app_csv = df_app_csv.set_index("endtime")
     """
     print(df.head(20))
     print(df.info())

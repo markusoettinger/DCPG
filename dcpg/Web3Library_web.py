@@ -5,8 +5,8 @@ from web3 import Web3, HTTPProvider
 
 t = "%d-%m-%Y%H-%M-%S"
 
-contractaddress = '0xE572267b4Ac171F176e6656DB68A01f418f9f81f'
-contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
+contractaddress = '0x839C63be21bAb1218db533af4267179CBf31d3cc'
+contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [],      "name": "loadGasBuffer",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
 log.basicConfig(level=log.INFO, format="%(asctime)s %(message)s", handlers= [log.FileHandler(f'../logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'), log.StreamHandler()])
 
 
@@ -16,6 +16,8 @@ class W3Library:
         self.web3 = self.connect()
         self.contract = self.connectContract()
         self.accounts = {}
+        self.contract.functions.loadGasBuffer().transact({'value': int(100 * 1e18)})
+        log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
 
     def connect(self, rpc_server='HTTP://127.0.0.1:7545'):
         try:
@@ -101,20 +103,27 @@ class W3Library:
         return flex, transactionHash
 
     def stopCharging(self, userId, endTime, flexFlow, chargedkWh):
-        chargedWh = int(chargedkWh * 1000)
-        flexFlow = int(flexFlow * 1e18)
-        oldBalance = self.getBalance(self.accounts[userId]["address"])
-        transactionHash = self.contract.functions.stopCharging(userId, self.accounts[userId]["chargerId"],
-                                                               int(endTime.timestamp()), flexFlow, chargedWh).transact()
-        self.web3.eth.waitForTransactionReceipt(transactionHash)
-        contract_transaction = (self.getBalance(self.accounts[userId]["address"]) - oldBalance) * 1e-18
-        log.info(f"[StopChar] User {userId} stopped charging at {self.accounts[userId]['chargerId']} with flex used: {round(flexFlow* 1e-18,3)} Simulation Time: {str(endTime)}")
-        log.info(f"[Transact] Contract transacted {round(contract_transaction, 3)} ether to userID {userId}")
-        if abs(self.accounts[userId]["retainingTokens"] - contract_transaction - (flexFlow * 1e-18)) > 0.1:
-            log.info(f"[TransErr] Contract transacted wrong amount of tokens")
-        self.accounts[userId]["chargerId"] = None
-        self.accounts[userId]["retainingTokens"] = None
-        return transactionHash
+        for i in range(1):
+            try:
+                chargedWh = int(chargedkWh * 1000)
+                flexFlow = int(flexFlow * 1e18)
+                oldBalance = self.getBalance(self.accounts[userId]["address"])
+                transactionHash = self.contract.functions.stopCharging(userId, self.accounts[userId]["chargerId"],
+                                                                       int(endTime.timestamp()), flexFlow, chargedWh).transact()
+                self.web3.eth.waitForTransactionReceipt(transactionHash)
+                contract_transaction = (self.getBalance(self.accounts[userId]["address"]) - oldBalance) * 1e-18
+                log.info(f"[StopChar] User {userId} stopped charging at {self.accounts[userId]['chargerId']} with flex used: {round(flexFlow* 1e-18,3)} Simulation Time: {str(endTime)}")
+                log.info(f"[Transact] Contract transacted {round(contract_transaction, 3)} ether to userID {userId}")
+                if abs(self.accounts[userId]["retainingTokens"] - contract_transaction + (flexFlow * 1e-18)) > 0.1:
+                    log.info(f"[TransErr] Contract transacted wrong amount of tokens")
+                self.accounts[userId]["chargerId"] = None
+                self.accounts[userId]["retainingTokens"] = None
+                return transactionHash
+            except self.web3.exceptions.SolidityError:
+                self.contract.functions.loadGasBuffer().transact({'value': int(100 * 1e18)})
+                log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
+                continue
+        raise ConnectionError(f"Still got Error at Stop Charging userID {userId}. Flex: {round(flexFlow* 1e-18,3)}")
 
     def inCharging(self):
         numberCharging = self.contract.functions.getChargingProcessesLength().call()

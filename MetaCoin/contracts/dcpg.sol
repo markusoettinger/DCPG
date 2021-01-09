@@ -23,6 +23,10 @@ contract DCPG {
         return chargingprocesses.length;
     }
 
+    function loadGasBuffer() public payable {
+        
+    }
+
     /**
      * @dev Definition of which charging units are part of charging station
      * @param station names of charging station
