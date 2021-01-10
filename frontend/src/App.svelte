@@ -32,11 +32,15 @@
   //-----------------------------------------------
   import { v4 as uuidv4 } from "uuid";
   let sliderDialog;
+  let sliderDialogStop;
   let accounts = new Map();
+  let contracts = new Map();
   let newAccounts;
   let estimatedDuration = 100;
   let desiredkWh = 80;
   let offeredFlex = 80;
+  let chargedkWh = 0;
+  let flexFlow = 0;
 
   function getAccounts() {
     fetch("http://localhost:8000/getAccounts")
@@ -188,12 +192,9 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
 
 <div class="content-row">
   <div class="content-column-left">
-    <div style="display: flex;justify-content: space-between;">
+    <div style="display: flex;justify-content: space-between;height:200px;">
       <h3 style="padding-left:20px">Accounts</h3>
-      <div style="margin: auto 10px auto auto;">
-        <span ><Icon class="material-icons">
-          ev_station
-          </Icon></span>
+      <div style="margin: 12px 10px auto auto;">
         <Button on:click={() => formSurface.setOpen(true)}>
           Create New Account
         </Button>
@@ -287,7 +288,8 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
       <Actions>
         <Button
           action="accept"
-          on:click={()=>{startCharging(accounts.get(selectedAccountId).userId, selectedChargerId, estimatedDuration, desiredkWh, offeredFlex);sliderDialog.close()}}>
+          on:click={()=>{startCharging(accounts.get(selectedAccountId).userId, selectedChargerId, estimatedDuration, desiredkWh, offeredFlex);
+          contracts.set(userId, { userId, selectedChargerId, estimatedDuration, desiredkWh, offeredFlex});sliderDialog.close()}}>
           <Label>Start</Label>
         </Button>
         <Button
@@ -314,7 +316,7 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
                 Contract ID:
                 {chargingProcess.id}.
               </h3>
-              <table>
+              <table style="width:100%">
                 <thead>
                   <tr>
                     <th />
@@ -325,21 +327,21 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
                   <tr>
                     <td><strong>User ID:</strong></td>
                     <td style="text-align:right">
-                      {chargingProcess.name}
+                      {chargingProcess.userID}
                       {rand}
                     </td>
                   </tr>
                   <tr>
                     <td><strong>Charger ID:</strong></td>
-                    <td />
+                    <td style="text-align:right">{chargingProcess.chargerID}</td>
                   </tr>
                   <tr>
                     <td><strong>Charging Time:</strong></td>
-                    <td />
+                    <td style="text-align:right">{chargingProcess.estimatedDuration}</td>
                   </tr>
                   <tr>
                     <td><strong>Flexibility offered:</strong></td>
-                    <td />
+                    <td style="text-align:right">{chargingProcess.availableFlex}</td>
                   </tr>
                 </tbody>
               </table>
@@ -348,13 +350,45 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
           <div class="action-buttons">
             <Actions>
               <ActionButtons>
-                <Button on:click={() => clicked++}>
+                <Button on:click={() => sliderDialogStop.open()}>
                   <Label>Stop Charging</Label>
                 </Button>
               </ActionButtons>
             </Actions>
           </div>
         </Card>
+        <Dialog
+          bind:this={sliderDialogStop}
+          aria-labelledby="slider-title"
+          aria-describedby="slider-content">
+          <Title id="slider-title">Stop Charging</Title>
+          <Content id="slider-content">
+            <div>
+              <FormField align="end" style="display: flex; flex-direction: column;">
+                <Slider bind:value={chargedkWh} min={0} max={200}  step={5} discrete displayMarkers/>
+                <span slot="label">Charged kWh</span>
+              </FormField>
+            </div>
+            <div>
+              <FormField align="end" style="display: flex; flex-direction: column;">
+                <Slider bind:value={flexFlow} min={0} max={10} step={1} discrete displayMarkers/>
+                <span slot="label">Flex used</span>
+              </FormField>
+            </div>
+          </Content>
+          <Actions>
+            <Button
+              action="accept"
+              on:click={()=>{stopCharging(contracts.get(chargingProcess).userId, flexFlow, chargedkWh);sliderDialog.close()}}>
+              <Label>Stop</Label>
+            </Button>
+            <Button
+              action="cancel"
+              on:click={sliderDialogStop.close()}>
+              <Label>Cancel</Label>
+            </Button>
+          </Actions>
+        </Dialog>
       </div>
     {/each}
   </div>
