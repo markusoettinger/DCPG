@@ -7,9 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from Web3Library_web import W3Library
+from datetime import datetime
 
 app = FastAPI()
-instance = W3Library()
+instance = W3Library(log_level=40) # equals logging level error
 if not instance.web3:
     raise ConnectionError("Could not connect to rpc Server")
 
@@ -32,6 +33,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# TODO Add more type definitions for docs
 
 class Item(BaseModel):
     name: str
@@ -60,36 +63,45 @@ async def inCharging():
 async def getBalance(userId: str):
     try:
         balance = instance.getBalanceForUser(userId)
-        return {"balance": balance*1e-18}
+        return {"balance": balance * 1e-18}
     except IndexError:
         raise HTTPException(status_code=404, detail="UserId not known")
 
 
 @app.get("/createAccount/{userId}")
 async def newAccount(userId: str):
-    address = instance.newAccount(userId, )
+    address = instance.newAccount(userId,)
     return {"address": address}
 
 
 @app.get("/startCharging/{userId}/{chargerId}/{estimatedDuration}/{desiredkWh}/{flex}")
-async def startCharging(userId: str, chargerId: str, estimatedDuration: int, desiredkWh: float,
-                        flex: float):
-    startTime = pd.Timestamp.today()
+async def startCharging(
+    userId: str, chargerId: str, estimatedDuration: int, desiredkWh: float, flex: float
+):
+    startTime = pd.Timestamp.today() # TODO dont use pd
     estimatedDuration = pd.Timedelta(estimatedDuration)
 
-    flex, transactionHash = instance.startCharging(userId=userId, chargerId=chargerId, startTime=startTime, estimateDuration=estimatedDuration,
-                           desiredkWh=desiredkWh, flex=flex)
+    flex, transactionHash = instance.startCharging(
+        userId=userId,
+        chargerId=chargerId,
+        startTime=startTime,
+        estimateDuration=estimatedDuration,
+        desiredkWh=desiredkWh,
+        flex=flex,
+    )
 
-    return {"used_flex": flex*1e-18, "transaction_hash": transactionHash, "startTime": startTime}
+    return {
+        "used_flex": flex * 1e-18,
+        "transaction_hash": transactionHash,
+        "startTime": startTime,
+    }
 
 
 @app.get("/stopCharging/{userId}/{chargerId}/{flexFlow}/{chargedkWh}")
-async def stopCharging(userId: str, chargerId:str, flexFlow: float, chargedkWh:float):
+async def stopCharging(userId: str, chargerId: str, flexFlow: float, chargedkWh: float):
     endTime = pd.Timestamp.today()
 
-    transactionHash = stopCharging(
-    userId, chargerId, endTime, flexFlow, chargedkWh
-    )
+    transactionHash = stopCharging(userId, chargerId, endTime, flexFlow, chargedkWh)
     return {"transaction_hash": transactionHash}
 
 

@@ -23,7 +23,76 @@
   import Textfield from "@smui/textfield";
   import HelperText from "@smui/textfield/helper-text";
   // import { Label, Icon } from "@smui/common";
+  //-----------------------------------------------
+  import { v4 as uuidv4 } from "uuid";
 
+  let accounts = new Map();
+  let newAccounts;
+
+  function getAccounts() {
+    fetch("http://localhost:8000/getAccounts")
+      .then((d) => d.text())
+      .then((d) => (newAccounts = d)); // merge into existing accounts (we only get addresses.. so kinda useless)
+  }
+
+  let inCharging = {};
+  function getInCharging() {
+    fetch("http://localhost:8000/inCharging")
+      .then((d) => d.text())
+      .then((d) => (inCharging = d));
+  }
+
+  function getBalance(userId) {
+    // perhaps buffer the values
+    fetch(`http://localhost:8000/balance/${userId}`)
+      .then((d) => d.text())
+      .then((d) => {
+        console.log(d);
+        let account = accounts.get(userId)
+        account.balance = d;
+        accounts.set(userId,account)
+      });
+  }
+
+  function createAccount(name) {
+    const userId = uuidv4();
+    fetch(`http://localhost:8000/createAccount/${userId}`)
+      .then((d) => d.text())
+      .then((d) => (accounts.set(userId,  { userId, name, address: d })))
+  }
+  
+  function startCharging(
+    userId,
+    chargerId,
+    estimatedDuration,
+    desiredkWh,
+    offeredFlex
+  ) {
+    fetch(
+      `http://localhost:8000/startCharging/${userId}/${chargerId}/${estimatedDuration}/${desiredkWh}/${offeredFlex}`
+    )
+      .then((d) => d.text())
+      .then((d) => console.log(d));
+  }
+
+  function stopCharging(
+    userId,
+    chargerId,
+    flexFlow,
+    chargedkWh,
+  ) {
+    fetch(
+      `http://localhost:8000/stopCharging/${userId}/${chargerId}/${flexFlow}/${chargedkWh}`
+    )
+      .then((d) => d.text())
+      .then((d) => console.log(d));
+  }
+
+
+  let knownChargers = ["charger 1", "charger 2", "charger 3", "charger 4", "charger 5", ]
+
+
+  //-----------------------------------------------
   let superText = "";
   let rand = 0;
 
@@ -33,16 +102,18 @@
       .then((d) => (rand = d));
   }
 
+    
+
   let clicked = 0;
 
-  let accounts = [
-    { id: "123ing", name: "something else", flex: 100 },
-    { id: "some1245thing", name: "something else", flex: 100 },
-    { id: "some33thing", name: "something else", flex: 100 },
-    { id: "some32354thing", name: "something else", flex: 100 },
-    { id: "somawfsething", name: "something else", flex: 100 },
-    { id: "somdfsething", name: "something else", flex: 100 },
-  ];
+  // let accounts = [
+  //   { userId: "123ing", name: "something else", flex: 100 },
+  //   { userId: "some1245thing", name: "something else", flex: 100 },
+  //   { userId: "some33thing", name: "something else", flex: 100 },
+  //   { userId: "some32354thing", name: "something else", flex: 100 },
+  //   { userId: "somawfsething", name: "something else", flex: 100 },
+  //   { userId: "somdfsething", name: "something else", flex: 100 },
+  // ];
 
   function addAccount() {
     if (input) {
@@ -128,8 +199,8 @@
     overflow: auto;
   }
 
-  .fabcontainer{
-    position:absolute;
+  .fabcontainer {
+    position: absolute;
     bottom: 50px;
     right: 50px;
     z-index: 999;
@@ -163,14 +234,15 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
 
 <div class="content-row">
   <div class="content-column-left" style="position: relative;">
-    <pre class="status">Selected: {selectedAccountId}, value of selectedIndex: {selectionIndex}</pre>
+    <pre
+      class="status">Selected: {selectedAccountId}, value of selectedIndex: {selectionIndex}</pre>
     <List
       class="demo-list"
       twoLine
       avatarList
       singleSelection
       bind:selectedIndex={selectionIndex}>
-      {#each accounts as account, j}
+      {#each Array.from(accounts.entries()) as [userId,account], j}
         <Item
           on:SMUI:action={() => (selectedAccountId = account.id)}
           disabled={false}
@@ -189,8 +261,9 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
       {/each}
     </List>
     <div class="fabcontainer">
-
-      <Fab on:click={getRand}><Icon class="material-icons">add</Icon></Fab>
+      <Fab on:click={getRand}>
+        <Icon class="material-icons">add</Icon>
+      </Fab>
     </div>
   </div>
   <div class="content-column-right" style="display: flex; flex-wrap: wrap;">
@@ -210,7 +283,8 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
               {chargingProcess.id}.
             </h3>
             This contract is under the Name of
-            {chargingProcess.name} {rand}
+            {chargingProcess.name}
+            {rand}
           </Content>
         </PrimaryAction>
         <Actions>
