@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from Web3Library_web import W3Library
 from datetime import datetime
+import pandas as pd
 
 app = FastAPI()
 instance = W3Library(log_level=40) # equals logging level error
@@ -55,8 +56,8 @@ async def getAccounts():
 async def inCharging():
 
     dicty = instance.inCharging()
-    json = json.dumps(dicty)
-    return {"processing json": json}
+    # json = JSON.dumps(dicty)
+    return {"processing json": dicty}
 
 
 @app.get("/balance/{userId}")
@@ -80,16 +81,18 @@ async def startCharging(
 ):
     startTime = pd.Timestamp.today() # TODO dont use pd
     estimatedDuration = pd.Timedelta(estimatedDuration)
-
+    print("here")
     flex, transactionHash = instance.startCharging(
         userId=userId,
         chargerId=chargerId,
         startTime=startTime,
         estimateDuration=estimatedDuration,
         desiredkWh=desiredkWh,
-        flex=flex,
+        flex=int(flex*1e18),
     )
-
+    print("there")
+    if flex is None:
+        raise HTTPException(status_code=400, detail="Charger already in use. Probably")
     return {
         "used_flex": flex * 1e-18,
         "transaction_hash": transactionHash,
@@ -120,7 +123,7 @@ def update_item(item_id: int, item: Item):
     return {"item_name": item.name, "item_id": item_id}
 
 
-app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="build")
+#app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="build")
 
 if __name__ == "__main__":
     uvicorn.run("webapi:app", host="0.0.0.0", reload=True, port=8000)
