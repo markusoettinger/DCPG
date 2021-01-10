@@ -10,18 +10,20 @@
   } from "@smui/card";
   import Button, { Label } from "@smui/button";
   import IconButton, { Icon } from "@smui/icon-button";
+  import MenuSurface, {Anchor} from '@smui/menu-surface';
+  import Textfield from '@smui/textfield';
   import List, {
     Item,
     Text,
     Graphic,
+    Separator,
     PrimaryText,
     SecondaryText,
     Meta,
   } from "@smui/list";
-  // import Button from "@smui/button";
   import Fab from "@smui/fab";
-  import Textfield from "@smui/textfield";
   import HelperText from "@smui/textfield/helper-text";
+  //import './menu-surface.scss';
   // import { Label, Icon } from "@smui/common";
   //-----------------------------------------------
   import { v4 as uuidv4 } from "uuid";
@@ -93,6 +95,9 @@
 
 
   //-----------------------------------------------
+  let formSurface;
+  let userName = '';
+  let desiredFlex = '';
   let superText = "";
   let rand = 0;
 
@@ -153,6 +158,7 @@
 <style>
   :global(html, body) {
     margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
     /* padding: 0; */
   }
   .card-container {
@@ -161,7 +167,7 @@
     align-items: center;
     min-height: 500px;
     min-width: 380px;
-    background-color: #f8f8f8;
+    background-color: #f8f822;
     margin-right: 20px;
     margin-bottom: 20px;
   }
@@ -199,9 +205,9 @@
     overflow: auto;
   }
 
-  .fabcontainer {
-    position: absolute;
-    bottom: 50px;
+  .menu-bar{
+    position:absolute;
+    top: 15px;
     right: 50px;
     z-index: 999;
   }
@@ -222,7 +228,10 @@
     align-items: center;
     flex-wrap: wrap;
     background-color: #78be7c;
+    height: 70px;
+    position:relative;
   }
+
 </style>
 
 <!-- <section style="--tw-bg-opacity: 1;
@@ -230,12 +239,30 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
 <div class="header">
   <!-- <img style="width: 150px; height: 150px;" src="logo.png" alt="logo" /> -->
   <h2 style="margin-left: 18px;">Charging Processes</h2>
+  <div class="menu-bar">
+    <Button on:click={() => formSurface.setOpen(true)}>Create New Contract</Button>
+    <MenuSurface bind:this={formSurface} anchorCorner="BOTTOM_LEFT">
+      <div style="margin: 1em; display: flex; flex-direction: column; align-items: flex-end;">
+        <Textfield bind:value={userName} label="User Name" />
+        <Button style="margin-top: 1em;" on:click={() => formSurface.setOpen(false)}>Submit</Button>
+      </div>
+    </MenuSurface>
+  </div>
+  
 </div>
 
 <div class="content-row">
   <div class="content-column-left" style="position: relative;">
-    <pre
-      class="status">Selected: {selectedAccountId}, value of selectedIndex: {selectionIndex}</pre>
+    <div style="display: flex;justify-content: space-between;">
+      <h3 style="padding-left:20px">Accounts</h3>
+      <Button on:click={() => formSurface.setOpen(true)} style="margin: auto 10px auto auto;">Create New Account</Button>
+      <MenuSurface bind:this={formSurface} anchorCorner="BOTTOM_LEFT">
+        <div style="margin: 1em; display: flex; flex-direction: column; align-items: flex-end;">
+          <Textfield bind:value={userName} label="User Name" />
+          <Button style="margin-top: 1em;" on:click={() => formSurface.setOpen(false)}>Submit</Button>
+        </div>
+      </MenuSurface>
+    </div>
     <List
       class="demo-list"
       twoLine
@@ -256,70 +283,65 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
             <PrimaryText>{account.id}</PrimaryText>
             <SecondaryText>{account.name}</SecondaryText>
           </Text>
-          <Meta class="material-icons" on:click={getRand}>settings</Meta>
         </Item>
       {/each}
     </List>
-    <div class="fabcontainer">
-      <Fab on:click={getRand}>
-        <Icon class="material-icons">add</Icon>
-      </Fab>
-    </div>
   </div>
   <div class="content-column-right" style="display: flex; flex-wrap: wrap;">
     {#each chargings as chargingProcess, i}
-      <Card style="width: 360px;margin: 10px;background-color: #f0f0f0;">
+    <div class="cards">
+      <Card style="width: 400px;margin: 10px;background-color: #f0f0f0;">
         <PrimaryAction on:click={() => clicked++}>
-          <Media class="card-media-16x9" aspectRatio="16x9" />
           <Content class="mdc-typography--body2">
             <h2 class="mdc-typography--headline6" style="margin: 0;">
-              Card Number
+              Contract Number
               {i}.
             </h2>
             <h3
               class="mdc-typography--subtitle2"
               style="margin: 0 0 10px; color: #888;">
-              Contract id is:
+              Contract ID:
               {chargingProcess.id}.
             </h3>
-            This contract is under the Name of
-            {chargingProcess.name}
-            {rand}
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>User ID:</strong></td>
+                  <td style="text-align:right">{chargingProcess.name} {rand}</td>
+                </tr>
+                <tr>
+                  <td><strong>Charger ID:</strong></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td><strong>Charging Time:</strong></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td><strong>Flexibility offered:</strong></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
           </Content>
         </PrimaryAction>
-        <Actions>
-          <ActionButtons>
-            <Button on:click={() => clicked++}>
-              <Label>Action</Label>
-            </Button>
-            <Button on:click={() => clicked++}>
-              <Label>Another</Label>
-            </Button>
-          </ActionButtons>
-          <ActionIcons>
-            <IconButton
-              on:click={() => clicked++}
-              toggle
-              aria-label="Add to favorites"
-              title="Add to favorites">
-              <Icon class="material-icons" on>favorite</Icon>
-              <Icon class="material-icons">favorite_border</Icon>
-            </IconButton>
-            <IconButton
-              class="material-icons"
-              on:click={() => clicked++}
-              title="Share">
-              share
-            </IconButton>
-            <IconButton
-              class="material-icons"
-              on:click={() => clicked++}
-              title="More options">
-              more_vert
-            </IconButton>
-          </ActionIcons>
-        </Actions>
+        <div class="action-buttons">
+          <Actions>
+            <ActionButtons>
+              <Button on:click={() => clicked++}>
+                <Label>Stop Charging</Label>
+              </Button>
+            </ActionButtons>
+          </Actions>
+        </div>
       </Card>
+    </div>
     {/each}
   </div>
 </div>
