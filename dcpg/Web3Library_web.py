@@ -8,7 +8,7 @@ from web3.exceptions import (
 
 t = "%d-%m-%Y%H-%M-%S"
 
-contractaddress = "0xCE5e2c6351C0AF6a6Ecc05154531510346055611"
+contractaddress = "0x93830826B2f0EaeB290Ca0267d7bB1D6EAdc6942"
 contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [],      "name": "loadGasBuffer",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
 # dies if logs folder is missing
 
@@ -29,7 +29,7 @@ class W3Library:
         self.contract = self.connectContract()
         self.accounts = {}
         self.chargingIds = {}
-        self.contract.functions.loadGasBuffer().transact({"value": int(100 * 1e18)})
+        self.contract.functions.loadGasBuffer().transact({"value": int(100 * 1e18)}) # TODO perhaps check balance before doing that.
         log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
 
     def connect(self, rpc_server="HTTP://127.0.0.1:7545"):
@@ -152,7 +152,7 @@ class W3Library:
         #sanity check --> chargerId not in use
         if chargerId in self.chargingIds and self.chargingIds[chargerId]["userId"] is None:
             return None
-        for i in range(2):
+        for i in range(2): 
             try:
                 chargedWh = int(chargedkWh * 1000)
                 flexFlow = int(flexFlow * 1e18)
