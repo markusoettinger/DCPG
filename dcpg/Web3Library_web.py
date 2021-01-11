@@ -11,19 +11,20 @@ t = "%d-%m-%Y%H-%M-%S"
 contractaddress = "0xcD64536ad0d7E8eE5eDa7C883c204abe19220A34"
 contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [],      "name": "loadGasBuffer",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
 # dies if logs folder is missing
-log.basicConfig(
-    level=log.INFO,
-    format="%(asctime)s %(message)s",
-    handlers=[
-        log.FileHandler(f'./logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'),
-        log.StreamHandler(),
-    ],
-)
 
 
 class W3Library:
-    def __init__(self, should_log=False):
-        log.info(f"[StartSim] Simulation started")
+    def __init__(self, log_level=log.INFO):
+        log.basicConfig(
+            level=log.INFO,
+            format="%(asctime)s %(message)s",
+            handlers=[
+                log.FileHandler(f'../logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'),
+                log.StreamHandler(),
+            ],
+        )
+
+        log.info(f"[StartSim] Client started")
         self.web3 = self.connect()
         self.contract = self.connectContract()
         self.accounts = {}
@@ -132,7 +133,7 @@ class W3Library:
                 int(startTime.timestamp()),
                 int(round(estimateDuration.total_seconds(), 0)),
                 desiredWh,
-            ).transact({"from": fromAddress, "value": flex})
+            ).transact({"from": fromAddress, "value": flex}) # TODO flex nicht gegen Float abgesichert, muss ein int sein, da sonst Fehler
         except ValueError:
             log.info(
                 f"[LowFunds] User {userId} doesn't have enough founds to send {round(flex * 1e-18, 3)} ether. Current account balance: {round(self.getBalance(fromAddress) * 1e-18, 3)} ether "
@@ -152,7 +153,7 @@ class W3Library:
         log.info(
             f"[StrtChar] User {userId} started charging at {chargerId} and payed {round(flex * 1e-18, 3)} to the contract. Simulation Time: {str(startTime)}"
         )
-        return flex, transactionHash
+        return flex, Web3.toHex(transactionHash)
 
     def stopCharging(self, userId, chargerId, endTime, flexFlow, chargedkWh):
         #sanity check --> chargerId not in use
@@ -186,7 +187,7 @@ class W3Library:
                         f'[TransErr] Contract transacted wrong amount of tokens {abs(self.chargingIds[chargerId]["retainingTokens"] - contract_transaction + (flexFlow * 1e-18))}'
                     )
                 self.chargingIds[chargerId] = {"chargerId": chargerId, "userId": None, "retainingTokens": None}
-                return transactionHash
+                return Web3.toHex(transactionHash)
             except SolidityError as e:
                 self.contract.functions.loadGasBuffer().transact(
                     {"value": int(100 * 1e18)}

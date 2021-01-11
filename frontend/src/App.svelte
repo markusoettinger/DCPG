@@ -1,4 +1,8 @@
 <script>
+  import FormField from "@smui/form-field";
+  import Slider from "@smui/slider";
+  import Dialog, { Title, InitialFocus } from "@smui/dialog";
+  import Select, { Option } from "@smui/select";
   import Card, {
     Content,
     PrimaryAction,
@@ -10,20 +14,112 @@
   } from "@smui/card";
   import Button, { Label } from "@smui/button";
   import IconButton, { Icon } from "@smui/icon-button";
+  import MenuSurface, { Anchor } from "@smui/menu-surface";
+  import Textfield from "@smui/textfield";
   import List, {
     Item,
     Text,
     Graphic,
+    Separator,
     PrimaryText,
     SecondaryText,
     Meta,
   } from "@smui/list";
-  // import Button from "@smui/button";
   import Fab from "@smui/fab";
-  import Textfield from "@smui/textfield";
   import HelperText from "@smui/textfield/helper-text";
+  //import './menu-surface.scss';
   // import { Label, Icon } from "@smui/common";
+  //-----------------------------------------------
+  import { v4 as uuidv4 } from "uuid";
+  let sliderDialog;
+  let sliderDialogStop;
+  let accounts = new Map();
+  let contracts = new Map();
+  let newAccounts;
+  let estimatedDuration = 100;
+  let desiredkWh = 80;
+  let offeredFlex = 80;
+  let chargedkWh = 0;
+  let flexFlow = 0;
 
+  function getAccounts() {
+    fetch("http://localhost:8000/getAccounts")
+      .then((d) => d.json())
+      .then((d) => (newAccounts = d)); // merge into existing accounts (we only get addresses.. so kinda useless)
+  }
+
+  let inCharging = [];
+  function getInCharging() {
+    fetch("http://localhost:8000/inCharging")
+      .then((d) => d.json())
+      .then((d) => (inCharging = d["processing json"]));
+  }
+
+  function getBalance(userId) {
+    // perhaps buffer the values
+    fetch(`http://localhost:8000/balance/${userId}`)
+      .then((d) => d.json())
+      .then((d) => {
+        console.log(d);
+        let account = accounts.get(userId);
+        account.balance = d;
+        accounts.set(userId, account);
+      });
+  }
+
+  function createAccount(name) {
+    const userId = uuidv4();
+    console.log("creating account");
+    console.log(name);
+    fetch(`http://localhost:8000/createAccount/${userId}`)
+      .then((d) => {
+        let u = d.json();
+        console.log("creating account got return");
+        console.log(u);
+        return u;
+      })
+      .then((d) => {
+        accounts.set(userId, { userId, name, address: d.address });
+        console.log(d);
+        accounts = accounts;
+      });
+  }
+
+  function startCharging(
+    userId,
+    chargerId,
+    estimatedDuration,
+    desiredkWh,
+    offeredFlex
+  ) {
+    console.log(userId,chargerId,estimatedDuration,desiredkWh,offeredFlex)
+    fetch(
+      `http://localhost:8000/startCharging/${userId}/${chargerId}/${estimatedDuration.toFixed(0)}/${desiredkWh}/${offeredFlex}`
+    )
+      .then((d) => d.json())
+      .then((d) => console.log(d));
+  }
+
+  function stopCharging(userId, chargerId, flexFlow, chargedkWh) {
+    fetch(
+      `http://localhost:8000/stopCharging/${userId}/${chargerId}/${flexFlow}/${chargedkWh}`
+    )
+      .then((d) => d.json())
+      .then((d) => console.log(d));
+  }
+
+  let knownChargers = [
+    "charger 1",
+    "charger 2",
+    "charger 3",
+    "charger 4",
+    "charger 5",
+  ];
+
+  //-----------------------------------------------
+  let formSurface;
+  let userName = "";
+  let desiredFlex = "";
   let superText = "";
   let rand = 0;
 
@@ -35,14 +131,14 @@
 
   let clicked = 0;
 
-  let accounts = [
-    { id: "123ing", name: "something else", flex: 100 },
-    { id: "some1245thing", name: "something else", flex: 100 },
-    { id: "some33thing", name: "something else", flex: 100 },
-    { id: "some32354thing", name: "something else", flex: 100 },
-    { id: "somawfsething", name: "something else", flex: 100 },
-    { id: "somdfsething", name: "something else", flex: 100 },
-  ];
+  // let accounts = [
+  //   { userId: "123ing", name: "something else", flex: 100 },
+  //   { userId: "some1245thing", name: "something else", flex: 100 },
+  //   { userId: "some33thing", name: "something else", flex: 100 },
+  //   { userId: "some32354thing", name: "something else", flex: 100 },
+  //   { userId: "somawfsething", name: "something else", flex: 100 },
+  //   { userId: "somdfsething", name: "something else", flex: 100 },
+  // ];
 
   function addAccount() {
     if (input) {
@@ -63,6 +159,8 @@
     accounts = accounts;
   }
 
+  let activeAccount;
+
   let chargings = [
     { id: "J---aiyznGQ", name: "Keyboard Cat" },
     { id: "z_AbfPXTKms", name: "Maru" },
@@ -76,12 +174,231 @@
   // This value is updated when the component is initialized, based on the
   // selected Item's `selected` prop.
   let selectionIndex = null;
+  let selectedChargerId;
   let addCharging = () => {};
 </script>
+
+
+
+<!-- <section style="--tw-bg-opacity: 1;
+background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
+<div class="header">
+  <!-- <img style="width: 150px; height: 150px;" src="logo.png" alt="logo" /> -->
+  <h2 style="margin-left: 18px;">Charging Processes</h2>
+  <div class="menu-bar"><Meta class="material-icons" on:click={getInCharging}>
+    refresh
+  </Meta></div>
+</div>
+
+<div class="content-row">
+  <div class="content-column-left">
+    <div style="display: flex;justify-content: space-between;height:200px;">
+      <h3 style="padding-left:20px">Accounts</h3>
+      <div style="margin: 12px 10px auto auto;">
+        <Button on:click={() => formSurface.setOpen(true)}>
+          Create New Account
+        </Button>
+        <MenuSurface bind:this={formSurface} anchorCorner="BOTTOM_LEFT">
+          <div
+            style="margin: 1em; display: flex; flex-direction: column; align-items: flex-end;">
+            <Textfield bind:value={userName} label="User Name" />
+            <Button
+              style="margin-top: 1em;"
+              on:click={() => {
+                formSurface.setOpen(false);
+                createAccount(userName);
+                userName = '';
+              }}>
+              Submit
+            </Button>
+          </div>
+        </MenuSurface>
+      </div>
+    </div>
+    <List
+      class="demo-list"
+      twoLine
+      avatarList
+      singleSelection
+      bind:selectedIndex={selectionIndex}>
+      {#each Array.from(accounts.entries()) as [userId, account], j}
+        <Item
+          on:SMUI:action={() => (selectedAccountId = account.userId)}
+          disabled={false}
+          selected={selectedAccountId === account.userId}>
+          <Graphic
+            style="background-image: url(https://via.placeholder.com/40x40.png?text={account.name
+              .split(' ')
+              .map((val) => val.substring(0, 1))
+              .join('')});" />
+          <Text>
+            <PrimaryText>{account.name}</PrimaryText>
+            <SecondaryText>{account.address}</SecondaryText>
+          </Text>
+          <Meta class="material-icons" on:click={sliderDialog.open()}>
+            settings
+          </Meta>
+        </Item>
+      {/each}
+    </List>
+    <Dialog
+      bind:this={sliderDialog}
+      aria-labelledby="slider-title"
+      aria-describedby="slider-content">
+      <Title id="slider-title">Start Charging</Title>
+      <Content id="slider-content">
+        <div>
+          <Select
+            bind:value={selectedChargerId}
+            label="Charging Station"
+           
+            >
+            
+            
+            {#each knownChargers as charger}
+              <Option value={charger}>{charger}</Option>
+            {/each}
+          </Select>
+
+        </div>
+        <div>
+          <FormField align="end" style="display: flex; flex-direction: column;">
+            <Slider
+              bind:value={estimatedDuration}
+              use={[InitialFocus]}
+              min={0}
+              max={12} step={1} discrete displayMarkers />
+            <span slot="label">Estimated Duration</span>
+          </FormField>
+        </div>
+        <div>
+          <FormField align="end" style="display: flex; flex-direction: column;">
+            <Slider bind:value={desiredkWh} min={0} max={200}  step={5} discrete displayMarkers/>
+            <span slot="label">Desired kWh</span>
+          </FormField>
+        </div>
+        <div>
+          <FormField align="end" style="display: flex; flex-direction: column;">
+            <Slider bind:value={offeredFlex} min={0} max={10} step={1} discrete displayMarkers/>
+            <!-- TODO must check for maxium available flex for that account -->
+            <span slot="label">Flex to Boost</span>
+          </FormField>
+        </div>
+      </Content>
+      <Actions>
+        <Button
+          action="accept"
+          on:click={()=>{startCharging(accounts.get(selectedAccountId).userId, selectedChargerId, estimatedDuration, desiredkWh, offeredFlex);
+          contracts.set(userId, { userId, selectedChargerId, estimatedDuration, desiredkWh, offeredFlex});sliderDialog.close()}}>
+          <Label>Start</Label>
+        </Button>
+        <Button
+          action="cancel"
+          on:click={sliderDialog.close()}>
+          <Label>Cancel</Label>
+        </Button>
+      </Actions>
+    </Dialog>
+  </div>
+  <div class="content-column-right" style="display: flex; flex-wrap: wrap;">
+    {#each inCharging as chargingProcess, i}
+      <div class="cards">
+        <Card style="width: 400px;margin: 10px;background-color: #f0f0f0;">
+          <PrimaryAction on:click={() => clicked++}>
+            <Content class="mdc-typography--body2">
+              <h2 class="mdc-typography--headline6" style="margin: 0;">
+                Contract Number
+                {i}.
+              </h2>
+              <h3
+                class="mdc-typography--subtitle2"
+                style="margin: 0 0 10px; color: #888;">
+                Contract ID:
+                {chargingProcess.id}.
+              </h3>
+              <table style="width:100%">
+                <thead>
+                  <tr>
+                    <th />
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>User ID:</strong></td>
+                    <td style="text-align:right">
+                      {chargingProcess.userID}
+                      {rand}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Charger ID:</strong></td>
+                    <td style="text-align:right">{chargingProcess.chargerID}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Charging Time:</strong></td>
+                    <td style="text-align:right">{chargingProcess.estimatedDuration}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Flexibility offered:</strong></td>
+                    <td style="text-align:right">{chargingProcess.availableFlex}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </Content>
+          </PrimaryAction>
+          <div class="action-buttons">
+            <Actions>
+              <ActionButtons>
+                <Button on:click={() => sliderDialogStop.open()}>
+                  <Label>Stop Charging</Label>
+                </Button>
+              </ActionButtons>
+            </Actions>
+          </div>
+        </Card>
+        <Dialog
+          bind:this={sliderDialogStop}
+          aria-labelledby="slider-title"
+          aria-describedby="slider-content">
+          <Title id="slider-title">Stop Charging</Title>
+          <Content id="slider-content">
+            <div>
+              <FormField align="end" style="display: flex; flex-direction: column;">
+                <Slider bind:value={chargedkWh} min={0} max={200}  step={5} discrete displayMarkers/>
+                <span slot="label">Charged kWh</span>
+              </FormField>
+            </div>
+            <div>
+              <FormField align="end" style="display: flex; flex-direction: column;">
+                <Slider bind:value={flexFlow} min={0} max={10} step={1} discrete displayMarkers/>
+                <span slot="label">Flex used</span>
+              </FormField>
+            </div>
+          </Content>
+          <Actions>
+            <Button
+              action="accept"
+              on:click={()=>{stopCharging(contracts.get(chargingProcess).userId, flexFlow, chargedkWh);sliderDialog.close()}}>
+              <Label>Stop</Label>
+            </Button>
+            <Button
+              action="cancel"
+              on:click={sliderDialogStop.close()}>
+              <Label>Cancel</Label>
+            </Button>
+          </Actions>
+        </Dialog>
+      </div>
+    {/each}
+  </div>
+</div>
+<!-- </section> -->
 
 <style>
   :global(html, body) {
     margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
     /* padding: 0; */
   }
   .card-container {
@@ -90,7 +407,7 @@
     align-items: center;
     min-height: 500px;
     min-width: 380px;
-    background-color: #f8f8f8;
+    background-color: #f8f822;
     margin-right: 20px;
     margin-bottom: 20px;
   }
@@ -112,6 +429,12 @@
     flex: 50%;
   } */
 
+  * :global(.mdc-select) {
+    width: 100%;
+    margin-bottom: 5px;
+
+  }
+
   /* Responsive layout - makes a one column layout instead of a two-column layout */
   @media (max-width: 1280px) {
     .content-row {
@@ -128,9 +451,9 @@
     overflow: auto;
   }
 
-  .fabcontainer{
-    position:absolute;
-    bottom: 50px;
+  .menu-bar {
+    position: absolute;
+    top: 15px;
     right: 50px;
     z-index: 999;
   }
@@ -151,102 +474,7 @@
     align-items: center;
     flex-wrap: wrap;
     background-color: #78be7c;
+    height: 70px;
+    position: relative;
   }
 </style>
-
-<!-- <section style="--tw-bg-opacity: 1;
-background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
-<div class="header">
-  <!-- <img style="width: 150px; height: 150px;" src="logo.png" alt="logo" /> -->
-  <h2 style="margin-left: 18px;">Charging Processes</h2>
-</div>
-
-<div class="content-row">
-  <div class="content-column-left" style="position: relative;">
-    <pre class="status">Selected: {selectedAccountId}, value of selectedIndex: {selectionIndex}</pre>
-    <List
-      class="demo-list"
-      twoLine
-      avatarList
-      singleSelection
-      bind:selectedIndex={selectionIndex}>
-      {#each accounts as account, j}
-        <Item
-          on:SMUI:action={() => (selectedAccountId = account.id)}
-          disabled={false}
-          selected={selectedAccountId === account.id}>
-          <Graphic
-            style="background-image: url(https://via.placeholder.com/40x40.png?text={account.id
-              .split(' ')
-              .map((val) => val.substring(0, 1))
-              .join('')});" />
-          <Text>
-            <PrimaryText>{account.id}</PrimaryText>
-            <SecondaryText>{account.name}</SecondaryText>
-          </Text>
-          <Meta class="material-icons" on:click={getRand}>settings</Meta>
-        </Item>
-      {/each}
-    </List>
-    <div class="fabcontainer">
-
-      <Fab on:click={getRand}><Icon class="material-icons">add</Icon></Fab>
-    </div>
-  </div>
-  <div class="content-column-right" style="display: flex; flex-wrap: wrap;">
-    {#each chargings as chargingProcess, i}
-      <Card style="width: 360px;margin: 10px;background-color: #f0f0f0;">
-        <PrimaryAction on:click={() => clicked++}>
-          <Media class="card-media-16x9" aspectRatio="16x9" />
-          <Content class="mdc-typography--body2">
-            <h2 class="mdc-typography--headline6" style="margin: 0;">
-              Card Number
-              {i}.
-            </h2>
-            <h3
-              class="mdc-typography--subtitle2"
-              style="margin: 0 0 10px; color: #888;">
-              Contract id is:
-              {chargingProcess.id}.
-            </h3>
-            This contract is under the Name of
-            {chargingProcess.name} {rand}
-          </Content>
-        </PrimaryAction>
-        <Actions>
-          <ActionButtons>
-            <Button on:click={() => clicked++}>
-              <Label>Action</Label>
-            </Button>
-            <Button on:click={() => clicked++}>
-              <Label>Another</Label>
-            </Button>
-          </ActionButtons>
-          <ActionIcons>
-            <IconButton
-              on:click={() => clicked++}
-              toggle
-              aria-label="Add to favorites"
-              title="Add to favorites">
-              <Icon class="material-icons" on>favorite</Icon>
-              <Icon class="material-icons">favorite_border</Icon>
-            </IconButton>
-            <IconButton
-              class="material-icons"
-              on:click={() => clicked++}
-              title="Share">
-              share
-            </IconButton>
-            <IconButton
-              class="material-icons"
-              on:click={() => clicked++}
-              title="More options">
-              more_vert
-            </IconButton>
-          </ActionIcons>
-        </Actions>
-      </Card>
-    {/each}
-  </div>
-</div>
-<!-- </section> -->

@@ -7,9 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from Web3Library_web import W3Library
+from datetime import datetime
+import pandas as pd
 
 app = FastAPI()
-instance = W3Library()
+instance = W3Library(log_level=40) # equals logging level error
 if not instance.web3:
     raise ConnectionError("Could not connect to rpc Server")
 
@@ -33,6 +35,8 @@ app.add_middleware(
 )
 
 
+# TODO Add more type definitions for docs
+
 class Item(BaseModel):
     name: str
     price: float
@@ -52,44 +56,55 @@ async def getAccounts():
 async def inCharging():
 
     dicty = instance.inCharging()
-    json = json.dumps(dicty)
-    return {"processing json": json}
+    # json = JSON.dumps(dicty)
+    return {"processing json": dicty}
 
 
 @app.get("/balance/{userId}")
 async def getBalance(userId: str):
     try:
         balance = instance.getBalanceForUser(userId)
-        return {"balance": balance*1e-18}
+        return {"balance": balance * 1e-18}
     except IndexError:
         raise HTTPException(status_code=404, detail="UserId not known")
 
 
 @app.get("/createAccount/{userId}")
 async def newAccount(userId: str):
-    address = instance.newAccount(userId, )
+    address = instance.newAccount(userId,)
     return {"address": address}
 
 
 @app.get("/startCharging/{userId}/{chargerId}/{estimatedDuration}/{desiredkWh}/{flex}")
-async def startCharging(userId: str, chargerId: str, estimatedDuration: int, desiredkWh: float,
-                        flex: float):
-    startTime = pd.Timestamp.today()
+async def startCharging(
+    userId: str, chargerId: str, estimatedDuration: int, desiredkWh: float, flex: float
+):
+    startTime = pd.Timestamp.today() # TODO dont use pd
     estimatedDuration = pd.Timedelta(estimatedDuration)
-
-    flex, transactionHash = instance.startCharging(userId=userId, chargerId=chargerId, startTime=startTime, estimateDuration=estimatedDuration,
-                           desiredkWh=desiredkWh, flex=flex)
-
-    return {"used_flex": flex*1e-18, "transaction_hash": transactionHash, "startTime": startTime}
+    print("here")
+    flex, transactionHash = instance.startCharging(
+        userId=userId,
+        chargerId=chargerId,
+        startTime=startTime,
+        estimateDuration=estimatedDuration,
+        desiredkWh=desiredkWh,
+        flex=int(flex*1e18),
+    )
+    print("there")
+    if flex is None:
+        raise HTTPException(status_code=400, detail="Charger already in use. Probably")
+    return {
+        "used_flex": flex * 1e-18,
+        "transaction_hash": transactionHash,
+        "startTime": startTime,
+    }
 
 
 @app.get("/stopCharging/{userId}/{chargerId}/{flexFlow}/{chargedkWh}")
-async def stopCharging(userId: str, chargerId:str, flexFlow: float, chargedkWh:float):
+async def stopCharging(userId: str, chargerId: str, flexFlow: float, chargedkWh: float):
     endTime = pd.Timestamp.today()
 
-    transactionHash = stopCharging(
-    userId, chargerId, endTime, flexFlow, chargedkWh
-    )
+    transactionHash = stopCharging(userId, chargerId, endTime, flexFlow, chargedkWh)
     return {"transaction_hash": transactionHash}
 
 
@@ -108,7 +123,7 @@ def update_item(item_id: int, item: Item):
     return {"item_name": item.name, "item_id": item_id}
 
 
-app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="build")
+#app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="build")
 
 if __name__ == "__main__":
     uvicorn.run("webapi:app", host="0.0.0.0", reload=True, port=8000)
