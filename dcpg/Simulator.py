@@ -2,7 +2,7 @@ import time
 
 import pandas as pd
 import parse_csv
-from Web3Library_web import W3Library
+from Web3Library_sim import W3Library
 
 df_app, df_server = parse_csv.run()
 simEnd = df_server.index.max()
