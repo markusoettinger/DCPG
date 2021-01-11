@@ -11,7 +11,7 @@ from datetime import datetime
 import pandas as pd
 
 app = FastAPI()
-instance = W3Library(log_level=40) # equals logging level error
+instance = W3Library(log_level=40)  # equals logging level error
 if not instance.web3:
     raise ConnectionError("Could not connect to rpc Server")
 
@@ -37,6 +37,7 @@ app.add_middleware(
 
 # TODO Add more type definitions for docs
 
+
 class Item(BaseModel):
     name: str
     price: float
@@ -49,15 +50,15 @@ class Item(BaseModel):
 @app.get("/getAccounts")
 async def getAccounts():
 
-    return {"accounts json": instance.accounts}
+    return instance.accounts
 
 
 @app.get("/inCharging")
 async def inCharging():
 
-    dicty = instance.inCharging()
+    listy = instance.inCharging()
     # json = JSON.dumps(dicty)
-    return {"processing json": dicty}
+    return listy
 
 
 @app.get("/balance/{userId}")
@@ -71,6 +72,10 @@ async def getBalance(userId: str):
 
 @app.get("/createAccount/{userId}")
 async def newAccount(userId: str):
+
+    if userId in instance.accounts:
+        raise HTTPException(status_code=400, detail="UserId already in use. Choose another one.")
+
     address = instance.newAccount(userId,)
     return {"address": address}
 
@@ -79,7 +84,7 @@ async def newAccount(userId: str):
 async def startCharging(
     userId: str, chargerId: str, estimatedDuration: int, desiredkWh: float, flex: float
 ):
-    startTime = pd.Timestamp.today() # TODO dont use pd
+    startTime = pd.Timestamp.today()  # TODO dont use pd
     estimatedDuration = pd.Timedelta(estimatedDuration)
     print("here")
     flex, transactionHash = instance.startCharging(
@@ -88,7 +93,7 @@ async def startCharging(
         startTime=startTime,
         estimateDuration=estimatedDuration,
         desiredkWh=desiredkWh,
-        flex=int(flex*1e18),
+        flex=int(flex * 1e18),
     )
     print("there")
     if flex is None:
@@ -104,7 +109,9 @@ async def startCharging(
 async def stopCharging(userId: str, chargerId: str, flexFlow: float, chargedkWh: float):
     endTime = pd.Timestamp.today()
 
-    transactionHash = stopCharging(userId, chargerId, endTime, flexFlow, chargedkWh)
+    transactionHash = instance.stopCharging(
+        userId, chargerId, endTime, flexFlow, chargedkWh
+    )
     return {"transaction_hash": transactionHash}
 
 
@@ -123,7 +130,7 @@ def update_item(item_id: int, item: Item):
     return {"item_name": item.name, "item_id": item_id}
 
 
-#app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="build")
+# app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="build")
 
 if __name__ == "__main__":
     uvicorn.run("webapi:app", host="0.0.0.0", reload=True, port=8000)
