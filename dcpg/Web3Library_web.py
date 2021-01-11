@@ -6,6 +6,8 @@ from web3.exceptions import (
     SolidityError,
 )
 
+accountsfile = "./accounts.txt"
+
 t = "%d-%m-%Y%H-%M-%S"
 
 contractaddress = "0xcD64536ad0d7E8eE5eDa7C883c204abe19220A34"
@@ -30,14 +32,23 @@ class W3Library:
         self.accounts = {}
         self.chargingIds = {}
         self.contractBalanceHistory = [[], []]
-        self.contract.functions.loadGasBuffer().transact({"value": int(100 * 1e18)})
-        log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
+        if round(self.getBalance(contractaddress) * 1e-18, 3) < 50:
+            self.contract.functions.loadGasBuffer().transact({"value": int(100 * 1e18)})
+            log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
+        self.accountfile = open("./accounts.txt", 'w')
+        for acc in self.accountfile.readlines():
+            self.accounts[acc.split(';')[0]] = {
+                "userID": acc.split(';')[0],
+                "address": acc.split(;)[1]
+            }
+        self.inCharging()
 
     def endSim(self):
         f = open('contract_Balance.txt', 'w')
         for i in range(len(self.contractBalanceHistory[0])):
             f.write(f'{self.contractBalanceHistory[0][i]}; {self.contractBalanceHistory[1][i]}\n')
         f.close()
+        self.accountfile.close()
 
     def connect(self, rpc_server="HTTP://127.0.0.1:7545"):
         try:
@@ -89,10 +100,9 @@ class W3Library:
             self.web3.geth.personal.unlockAccount(newAddress, str(userId), 0)
             self.accounts[userId] = {
                 "userID": userId,
-                "address": newAddress,
-                "chargerId": None,
-                "retainingTokens": None,
+                "address": newAddress
             }
+            self.accountfile.write(f'{userId};{newAddress}')
             log.info(f"[NewAcc  ] New account {newAddress} created for user {userId}")
             # FaucetTransaction
             self.transact(
@@ -225,6 +235,18 @@ class W3Library:
             "desiredWh",
         ]
         for i in range(numberCharging):
-            process = self.contract.functions.chargingprocesses(i).call()
-            processes.append(dict(zip(varNames, process)))
+            processVar = self.contract.functions.chargingprocesses(i).call()
+            process = dict(zip(varNames, processVar))
+            processes.append(process)
+            if process.userID not in self.accounts:
+                self.accounts[userId] = {
+                "userID": process.userID,
+                "address": process.chargee
+            }
+            if process.chargerID not in self.chargingIds:
+                self.chargingIds[chargerId] = {
+                    "chargerId": process.chargerID,
+                     "userId": process.userID,
+                     "retainingTokens": process.availableFlex * 1e-18
+            }
         return processes

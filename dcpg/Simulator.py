@@ -83,3 +83,4 @@ while True:
     # if sleeptime > 0:
     #     time.sleep(sleeptime)
     simTimestamp = min(nextTimestamp)
+instance.endSim()
