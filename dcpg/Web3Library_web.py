@@ -8,7 +8,7 @@ from web3.exceptions import (
 
 t = "%d-%m-%Y%H-%M-%S"
 
-contractaddress = "0x156401fa9E15EAa6f071e609c83c8eec2416f1d9"
+contractaddress = "0xcD64536ad0d7E8eE5eDa7C883c204abe19220A34"
 contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [],      "name": "loadGasBuffer",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
 # dies if logs folder is missing
 log.basicConfig(
@@ -28,8 +28,15 @@ class W3Library:
         self.contract = self.connectContract()
         self.accounts = {}
         self.chargingIds = {}
+        self.contractBalanceHistory = [[], []]
         self.contract.functions.loadGasBuffer().transact({"value": int(100 * 1e18)})
         log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
+
+    def endSim(self):
+        f = open('contract_Balance.txt', 'w')
+        for i in range(len(self.contractBalanceHistory[0])):
+            f.write(f'{self.contractBalanceHistory[0][i]}; {self.contractBalanceHistory[1][i]}\n')
+        f.close()
 
     def connect(self, rpc_server="HTTP://127.0.0.1:7545"):
         try:
@@ -100,7 +107,7 @@ class W3Library:
         #sanity check --> is chargerId already occupied
         if chargerId in self.chargingIds and self.chargingIds[chargerId]["userId"] is not None:
             return None, None
-        P_charger = 3.5  # kW --> example for calculating max Flex to pay
+        P_charger = 3  # kW --> example for calculating max Flex to pay
         # estimateDuration evtl. umwandeln
         fromAddress = self.accounts[userId]["address"]
         av_balance = self.getBalance(fromAddress)
@@ -195,14 +202,17 @@ class W3Library:
 
     def inCharging(self, simTime=None):
         numberCharging = self.contract.functions.getChargingProcessesLength().call()
+        contractBalance = round(self.getBalance(contractaddress) * 1e-18, 3)
+        self.contractBalanceHistory[0].append(simTime)
+        self.contractBalanceHistory[1].append(contractBalance)
         processes = []
         if simTime is not None:
             log.info(
-                f"[CharInfo] Currently are {numberCharging} charging processes active. Contract Balance: {round(self.getBalance(contractaddress) * 1e-18, 3)} ether. Simulation Time: {str(simTime)}"
+                f"[CharInfo] Currently are {numberCharging} charging processes active. Contract Balance: {contractBalance} ether. Simulation Time: {str(simTime)}"
             )
         else:
             log.info(
-                f"[CharInfo] Currently are {numberCharging} charging processes active. Contract Balance: {round(self.getBalance(contractaddress) * 1e-18, 3)} ether"
+                f"[CharInfo] Currently are {numberCharging} charging processes active. Contract Balance: {contractBalance} ether"
             )
         varNames = [
             "userID",
