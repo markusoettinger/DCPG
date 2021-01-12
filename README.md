@@ -25,6 +25,13 @@ conda env create -f environment.yml
 ```
 activate dcpg
 ```
+Setting up Ganache with contracts from Trufflesuit
+* install Ganache from https://www.trufflesuite.com/ganache
+* install truffle using :```npm install -g truffle```
+* setup ganache server with adding project by selecting truffle-config.js in the MetaCoin folder
+* move to MetaCoin folder in the terminal
+* deploy contracts using: ```truffle migrate```
+* redeploying contracts using ```truffle migrate --reset```
 
 ## Test
 
@@ -34,6 +41,11 @@ No real tests yet, but run:
 pytest
 ```
 
+
 ## Format Python
 
 To align formating the formater "Black" is used for all Python files. Please format your files before committing.
+
+
+
+## reminder to add frontend setup
