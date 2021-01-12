@@ -342,8 +342,8 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
             <PrimaryText>{userId}</PrimaryText>
             <SecondaryText>{account.address}</SecondaryText>
           </Text>
-          <Meta class="material-icons" on:click={sliderDialog.open()}>
-            settings
+          <Meta style="font-size: 40px;" class="material-icons" on:click={sliderDialog.open()}>
+            electrical_services
           </Meta>
         </Item>
       {/each}
@@ -472,7 +472,10 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
             <Actions>
               <ActionButtons>
                 <Button on:click={() => sliderDialogStop.open()}>
-                  <Label>Stop Charging</Label>
+                  <!-- <Label>Stop Charging</Label> -->
+                  <Meta style="font-size: 40px;" class="material-icons">
+                    power_off
+                  </Meta>
                 </Button>
               </ActionButtons>
             </Actions>
