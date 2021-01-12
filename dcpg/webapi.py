@@ -85,7 +85,7 @@ async def startCharging(
     userId: str, chargerId: str, estimatedDuration: int, desiredkWh: float, flex: float
 ):
     startTime = pd.Timestamp.today()  # TODO dont use pd
-    estimatedDuration = pd.Timedelta(estimatedDuration, unit="m")
+    estimatedDuration = pd.Timedelta(estimatedDuration, unit="hours")
     print("here")
     flex, transactionHash = instance.startCharging(
         userId=userId,
@@ -133,4 +133,4 @@ def update_item(item_id: int, item: Item):
 # app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="build")
 
 if __name__ == "__main__":
-    uvicorn.run("webapi:app", host="0.0.0.0", reload=True, port=8000)
+    uvicorn.run("webapi:app", host="0.0.0.0", reload=True, port=8000, reload_dirs="dcpg")
