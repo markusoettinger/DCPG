@@ -297,9 +297,9 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
   </div>
 </div>
 
-<div class="content-row">
-  <div class="content-column-left">
-    <div style="display: flex;justify-content: space-between;">
+<div class="content-row" style="min-height:845px;border:1px #ccc solid;margin:10px;border-radius:15px;">
+  <div class="content-column-left" style="border-right:1px #ccc solid;">
+    <div style="display: flex;justify-content: space-between;border-bottom:1px #ccc solid;">
       <h3 style="padding-left:20px">Accounts</h3>
       <div style="margin: 12px 10px auto auto;">
         <Button on:click={() => formSurface.setOpen(true)}>

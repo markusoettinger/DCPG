@@ -9,7 +9,7 @@ filename_acc = "./accounts.txt"
 
 t = "%d-%m-%Y%H-%M-%S"
 
-contractaddress = "0xcD64536ad0d7E8eE5eDa7C883c204abe19220A34"
+contractaddress = "0xC1555Ec71102b68b4CA734170F5EC21E41ca82af"
 contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [],      "name": "loadGasBuffer",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
 # dies if logs folder is missing
 
@@ -20,7 +20,7 @@ class W3Library:
             level=log.INFO,
             format="%(asctime)s %(message)s",
             handlers=[
-                log.FileHandler(f'./logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'),
+                log.FileHandler(f'../logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'),
                 log.StreamHandler(),
             ],
         )
@@ -38,7 +38,7 @@ class W3Library:
         for acc in accountfile.readlines():
             self.accounts[acc.split(';')[0]] = {
                 "userID": acc.split(';')[0],
-                "address": acc.split(';')[1]
+                "address": acc.split(';')[1].strip("\n")
             }
         accountfile.close()
         self.inCharging()

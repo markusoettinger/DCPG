@@ -85,7 +85,7 @@ async def startCharging(
     userId: str, chargerId: str, estimatedDuration: int, desiredkWh: float, flex: float
 ):
     startTime = pd.Timestamp.today()  # TODO dont use pd
-    estimatedDuration = pd.Timedelta(estimatedDuration)
+    estimatedDuration = pd.Timedelta(estimatedDuration, unit="m")
     print("here")
     flex, transactionHash = instance.startCharging(
         userId=userId,
