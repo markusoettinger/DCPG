@@ -9,7 +9,7 @@ filename_acc = "./accounts.txt"
 
 t = "%d-%m-%Y%H-%M-%S"
 
-contractaddress = "0xcD64536ad0d7E8eE5eDa7C883c204abe19220A34"
+contractaddress = "0xb9653f85856DD76b63B6359B2017531898825289"
 contractabi = '[    {      "inputs": [        {          "internalType": "string",          "name": "station",          "type": "string"        }      ],      "stateMutability": "nonpayable",      "type": "constructor"    },    {      "inputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "name": "chargingprocesses",      "outputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "address",          "name": "chargee",          "type": "address"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "availableFlex",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "godwin",      "outputs": [        {          "internalType": "address",          "name": "",          "type": "address"        }      ],      "stateMutability": "view",      "type": "function",      "constant": true    },    {      "inputs": [],      "name": "getChargingProcessesLength",      "outputs": [        {          "internalType": "uint256",          "name": "",          "type": "uint256"        }      ],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [],      "name": "loadGasBuffer",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "endTime",          "type": "uint256"        },        {          "internalType": "int256",          "name": "flexFlow",          "type": "int256"        },        {          "internalType": "uint256",          "name": "chargedWh",          "type": "uint256"        }      ],      "name": "stopCharging",      "outputs": [],      "stateMutability": "nonpayable",      "type": "function"    },    {      "inputs": [        {          "internalType": "string",          "name": "userID",          "type": "string"        },        {          "internalType": "string",          "name": "chargerID",          "type": "string"        },        {          "internalType": "uint256",          "name": "startTime",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "estimatedDuration",          "type": "uint256"        },        {          "internalType": "uint256",          "name": "desiredWh",          "type": "uint256"        }      ],      "name": "startCharging",      "outputs": [],      "stateMutability": "payable",      "type": "function",      "payable": true    }  ]'
 # dies if logs folder is missing
 
@@ -48,7 +48,6 @@ class W3Library:
         for i in range(len(self.contractBalanceHistory[0])):
             f.write(f'{self.contractBalanceHistory[0][i]}; {self.contractBalanceHistory[1][i]}\n')
         f.close()
-        self.accountfile.close()
 
     def connect(self, rpc_server="HTTP://127.0.0.1:7545"):
         try:
@@ -219,7 +218,7 @@ class W3Library:
         self.contractBalanceHistory[0].append(simTime)
         self.contractBalanceHistory[1].append(contractBalance)
         processes = []
-        accountfile = open(filename_acc, 'a')
+        # accountfile = open(filename_acc, 'a')
         if simTime is not None:
             log.info(
                 f"[CharInfo] Currently are {numberCharging} charging processes active. Contract Balance: {contractBalance} ether. Simulation Time: {str(simTime)}"
@@ -237,21 +236,21 @@ class W3Library:
             "availableFlex",
             "desiredWh",
         ]
-        for i in range(numberCharging):
-            processVar = self.contract.functions.chargingprocesses(i).call()
-            process = dict(zip(varNames, processVar))
-            processes.append(process)
-            if process["userID"] not in self.accounts:
-                self.accounts[process["userID"]] = {
-                "userID": process["userID"],
-                "address": process["chargee"]
-                }
-                accountfile.write(f'{process["userID"]};{process["chargee"]}\n')
-            if process["chargerID"] not in self.chargingIds:
-                self.chargingIds[process["chargerID"]] = {
-                    "chargerId": process["chargerID"],
-                     "userId": process["userID"],
-                     "retainingTokens": process["availableFlex"] * 1e-18
-            }
-        accountfile.close()
+        # for i in range(numberCharging):
+        #     processVar = self.contract.functions.chargingprocesses(i).call()
+        #     process = dict(zip(varNames, processVar))
+        #     processes.append(process)
+        #     if process["userID"] not in self.accounts:
+        #         self.accounts[process["userID"]] = {
+        #         "userID": process["userID"],
+        #         "address": process["chargee"]
+        #         }
+        #         accountfile.write(f'{process["userID"]};{process["chargee"]}\n')
+        #     if process["chargerID"] not in self.chargingIds:
+        #         self.chargingIds[process["chargerID"]] = {
+        #             "chargerId": process["chargerID"],
+        #              "userId": process["userID"],
+        #              "retainingTokens": process["availableFlex"] * 1e-18
+        #     }
+        # accountfile.close()
         return processes
