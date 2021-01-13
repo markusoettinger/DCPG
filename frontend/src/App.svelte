@@ -123,11 +123,59 @@
   }
 
   let knownChargers = [
-    "charger 1",
-    "charger 2",
-    "charger 3",
-    "charger 4",
-    "charger 5",
+    "AG-1F01",
+    "AG-1F02",
+    "AG-1F03",
+    "AG-1F04",
+    "AG-1F05",
+    "AG-1F06",
+    "AG-1F07",
+    "AG-1F08",
+    "AG-1F09",
+    "AG-1F10",
+    "AG-1F11",
+    "AG-1F12",
+    "AG-1F13",
+    "AG-1F14",
+    "AG-3F15",
+    "AG-3F16",
+    "AG-3F17",
+    "AG-3F18",
+    "AG-3F19",
+    "AG-3F20",
+    "AG-3F21",
+    "AG-3F22",
+    "AG-3F23",
+    "AG-3F24",
+    "AG-3F25",
+    "AG-3F26",
+    "AG-3F27",
+    "AG-3F28",
+    "AG-3F29",
+    "AG-3F30",
+    "AG-3F31",
+    "AG-3F32",
+    "AG-3F33",
+    "AG-4F34",
+    "AG-4F35",
+    "AG-4F36",
+    "AG-4F37",
+    "AG-4F38",
+    "AG-4F39",
+    "AG-4F39",
+    "AG-4F40",
+    "AG-4F41",
+    "AG-4F42",
+    "AG-4F43",
+    "AG-4F44",
+    "AG-4F45",
+    "AG-4F46",
+    "AG-4F47",
+    "AG-4F48",
+    "AG-4F49",
+    "AG-4F50",
+    "AG-4F51",
+    "AG-4F52",
   ];
 
   //-----------------------------------------------
@@ -203,8 +251,15 @@
 
 <!-- </section> -->
 <style>
-  :global(html, body) {
-    margin: 0;
+  :global(html) {
+    margin:0;
+    height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    /* padding: 0; */
+  }
+  :global(body) {
+    margin:0;
+    min-height: 100vh;
     font-family: Arial, Helvetica, sans-serif;
     /* padding: 0; */
   }
@@ -294,13 +349,13 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
   <!-- <img style="width: 150px; height: 150px;" src="logo.png" alt="logo" /> -->
   <h2 style="margin-left: 18px;">Charging Processes</h2>
   <div class="menu-bar">
-    <Meta class="material-icons" on:click={getInCharging}>refresh</Meta>
+    <Meta class="material-icons" style="font-size:40px; cursor:pointer" on:click={getInCharging}>refresh</Meta>
   </div>
 </div>
 
 <div
   class="content-row"
-  style="min-height:845px;border:1px #ccc solid;margin:10px;border-radius:15px;">
+  style="border:1px #ccc solid;margin:10px;border-radius:15px;height: calc(100vh - 90px);">
   <div class="content-column-left">
     <div
       style="display: flex;justify-content: space-between;border-bottom:1px #ccc solid;">
@@ -426,9 +481,9 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
   </div>
   <div
     class="content-column-right"
-    style="display: flex; flex-wrap: wrap;margin-bottom: auto;">
+    style="display: flex; flex-wrap: wrap; margin-bottom: auto; margin-bottom: auto;">
     {#each inCharging as chargingProcess, i}
-      <Card style="width: 400px;margin: 10px;background-color: #f0f0f0;">
+      <Card style="width: 400px;margin: 10px;background-color: #f0f0f0; margin-bottom:auto;">
         <PrimaryAction on:click={() => clicked++}>
           <Content class="mdc-typography--body2">
             <h2 class="mdc-typography--headline6" style="margin: 0;">
@@ -454,19 +509,19 @@ background-color: rgba(31, 41, 55, var(--tw-bg-opacity));"> -->
                   <td style="text-align:right">{chargingProcess.userID}</td>
                 </tr>
                 <tr>
-                  <td><strong>Charger ID:</strong></td>
+                  <td><strong>Station ID:</strong></td>
                   <td style="text-align:right">{chargingProcess.chargerID}</td>
                 </tr>
                 <tr>
                   <td><strong>Charging Time:</strong></td>
                   <td style="text-align:right">
-                    {chargingProcess.estimatedDuration / 3600}
+                    {chargingProcess.estimatedDuration / 3600} h 
                   </td>
                 </tr>
                 <tr>
                   <td><strong>Flexibility offered:</strong></td>
                   <td style="text-align:right">
-                    {chargingProcess.availableFlex / 1e18}
+                    {chargingProcess.availableFlex / 1e18 } Ether
                   </td>
                 </tr>
               </tbody>
