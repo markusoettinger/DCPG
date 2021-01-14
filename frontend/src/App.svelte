@@ -348,7 +348,7 @@
               step={1}
               discrete
               displayMarkers />
-            <span slot="label">Estimated Duration</span>
+            <span slot="label">Estimated Duration [h]</span>
           </FormField>
         </div>
         <div>
@@ -356,7 +356,7 @@
             <Slider
               bind:value={desiredkWh}
               min={0}
-              max={200}
+              max={70}
               step={5}
               discrete
               displayMarkers />
@@ -372,7 +372,7 @@
               step={1}
               discrete
               displayMarkers />
-            <span slot="label">Flex to Boost</span>
+            <span slot="label">Boost</span>
           </FormField>
         </div>
       </Content>
@@ -426,7 +426,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td><strong>Flexibility offered:</strong></td>
+                  <td><strong>Boost allocated:</strong></td>
                   <td style="text-align:right">
                     {chargingProcess.availableFlex / 1e18 } Ether
                   </td>
@@ -477,12 +477,12 @@
         <FormField align="end" style="display: flex; flex-direction: column;">
           <Slider
             bind:value={flexFlow}
-            min={0}
+            min={-20}
             max={selectedAvailableFlex}
             step={1}
             discrete
             displayMarkers />
-          <span slot="label">Flex used</span>
+          <span slot="label">Boosted amount</span>
         </FormField>
       </div>
     </Content>
@@ -490,7 +490,7 @@
       <Button
         action="accept"
         on:click={() => {
-          stopCharging(selectedAccountId, selectedChargerId, flexFlow, chargedkWh);
+          stopCharging(selectedAccountId, selectedChargerId, -flexFlow, chargedkWh);
           sliderDialogStop.close();
           getInCharging();
         }}>
