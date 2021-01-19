@@ -51,10 +51,11 @@
     fetch("http://localhost:8000/getAccounts")
       .then((d) => d.json())
       .then((d) => {
-        console.log(d);
+        // console.log(d);
         accounts = new Map();
         for (const key in d) {
           accounts.set(key, d[key]);
+          getBalance(key);
         }
         console.log(accounts);
       });
@@ -71,11 +72,12 @@
     fetch(`http://localhost:8000/balance/${userId}`)
       .then((d) => d.json())
       .then((d) => {
-        console.log(d);
+        // console.log(d);
         let account = accounts.get(userId);
         account.balance = d;
         accounts.set(userId, account);
         accounts = accounts;
+        // console.log(accounts)
       });
   }
 
@@ -83,10 +85,11 @@
     console.log("creating account");
     fetch(`http://localhost:8000/createAccount/${userId}`)
       .then(handleErrors)
+      .then(getAccounts)
       .catch((e) => {
         console.log(e);
       });
-    getAccounts();
+    
   }
 
   function startCharging(
@@ -176,9 +179,13 @@
   let clicked = 0;
 
   onMount(async () => {
+    fullUpdate();
+  });
+
+  function fullUpdate() {
     getInCharging();
     getAccounts();
-  });
+  }
 
 
   let selectedAccountId = "Stephen Hawking";
@@ -264,7 +271,7 @@
 <div class="header">
   <h2 style="margin-left: 18px;">Charging Processes</h2>
   <div class="menu-bar">
-    <Meta class="material-icons" style="font-size:40px; cursor:pointer" on:click={getInCharging}>refresh</Meta>
+    <Meta class="material-icons" style="font-size:40px; cursor:pointer" on:click={fullUpdate}>refresh</Meta>
   </div>
 </div>
 
@@ -298,7 +305,7 @@
     </div>
     <List
       class="demo-list"
-      twoLine
+      threeLine
       avatarList
       singleSelection
       bind:selectedIndex={selectionIndex}>
@@ -314,7 +321,11 @@
               .join('')});" />
           <Text>
             <PrimaryText>{userId}</PrimaryText>
-            <SecondaryText>{account.address}</SecondaryText>
+            <SecondaryText>Address: {account.address}</SecondaryText>
+            {#if (account.balance !== undefined)}
+            <SecondaryText>Flex: {account.balance}</SecondaryText>
+              
+            {/if}
           </Text>
           <Meta
             style="font-size: 40px;"
@@ -381,8 +392,8 @@
           action="accept"
           on:click={() => {
             startCharging(selectedAccountId, selectedChargerId, estimatedDuration, desiredkWh, offeredFlex);
-            getInCharging();
             sliderDialog.close();
+            fullUpdate();
           }}>
           <Label>Start</Label>
         </Button>
@@ -492,7 +503,7 @@
         on:click={() => {
           stopCharging(selectedAccountId, selectedChargerId, -flexFlow, chargedkWh);
           sliderDialogStop.close();
-          getInCharging();
+          fullUpdate();
         }}>
         <Label>Stop</Label>
       </Button>

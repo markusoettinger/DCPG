@@ -57,7 +57,7 @@ async def inCharging():
 async def getBalance(userId: str):
     try:
         balance = instance.getBalanceForUser(userId) * 1e-18
-        return {"balance": balance}
+        return balance
     except IndexError:
         raise HTTPException(status_code=404, detail="UserId not known")
 
