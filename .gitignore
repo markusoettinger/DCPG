@@ -129,3 +129,7 @@ dmypy.json
 .pyre/
 .vscode/settings.json
 .idea/
+bin/MetaCoin/contracts/dcpg-solc-output.json
+bin/MetaCoin/contracts/DCPG.abi
+bin/MetaCoin/contracts/DCPG.bin
+bin/MetaCoin/contracts/DCPG.json
