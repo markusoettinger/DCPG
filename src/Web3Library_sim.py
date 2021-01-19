@@ -2,9 +2,7 @@ import logging as log
 from datetime import datetime
 
 from web3 import Web3, HTTPProvider
-from web3.exceptions import (
-    SolidityError,
-)
+from web3.exceptions import SolidityError
 
 t = "%d-%m-%Y%H-%M-%S"
 
@@ -19,7 +17,9 @@ class W3Library:
             level=log.INFO,
             format="%(asctime)s %(message)s",
             handlers=[
-                log.FileHandler(f'./logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'),
+                log.FileHandler(
+                    f'./logs/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log'
+                ),
                 log.StreamHandler(),
             ],
         )
@@ -35,9 +35,11 @@ class W3Library:
             log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
 
     def endSim(self):
-        f = open('contract_Balance.txt', 'w')
+        f = open("contract_Balance.txt", "w")
         for i in range(len(self.contractBalanceHistory[0])):
-            f.write(f'{self.contractBalanceHistory[0][i]}; {self.contractBalanceHistory[1][i]}\n')
+            f.write(
+                f"{self.contractBalanceHistory[0][i]}; {self.contractBalanceHistory[1][i]}\n"
+            )
         f.close()
 
     def connect(self, rpc_server="HTTP://127.0.0.1:7545"):
@@ -62,6 +64,7 @@ class W3Library:
             f"[ContrCon] Connected to SmartContract with address: {contractaddress}"
         )
         return contract
+
     def getBalance(self, address):
         return self.web3.eth.getBalance(address)
 
@@ -88,24 +91,22 @@ class W3Library:
         if userId not in self.accounts:
             newAddress = self.web3.geth.personal.new_account(str(userId))
             self.web3.geth.personal.unlockAccount(newAddress, str(userId), 0)
-            self.accounts[userId] = {
-                "userID": userId,
-                "address": newAddress
-            }
+            self.accounts[userId] = {"userID": userId, "address": newAddress}
             log.info(f"[NewAcc  ] New account {newAddress} created for user {userId}")
             # FaucetTransaction
-            self.transact(
-                newAddress, "Faucet", 3e20
-            )
+            self.transact(newAddress, "Faucet", 3e20)
 
             return newAddress
         return
 
     def startCharging(
-            self, userId, chargerId, startTime, estimateDuration, desiredkWh, flex=None
+        self, userId, chargerId, startTime, estimateDuration, desiredkWh, flex=None
     ):
-        #sanity check --> is chargerId already occupied
-        if chargerId in self.chargingIds and self.chargingIds[chargerId]["userId"] is not None:
+        # sanity check --> is chargerId already occupied
+        if (
+            chargerId in self.chargingIds
+            and self.chargingIds[chargerId]["userId"] is not None
+        ):
             return None, None
         P_charger = 3  # kW
         # estimateDuration evtl. umwandeln
@@ -114,16 +115,20 @@ class W3Library:
         # Check balance for amount available
         if flex is None:
             flexWh = (
-                    desiredkWh
-                    - (P_charger * (estimateDuration.total_seconds() / 3600))
-                    + 10 #estimated max Flex payment
+                desiredkWh
+                - (P_charger * (estimateDuration.total_seconds() / 3600))
+                + 10  # estimated max Flex payment
             )
             flex = int(flexWh * 1e18)
         if flex > av_balance:
             flex = av_balance
         if flex < 0:
             flex = 0
-        self.chargingIds[chargerId] = {"chargerId": chargerId, "userId": userId, "retainingTokens": flex * 1e-18}
+        self.chargingIds[chargerId] = {
+            "chargerId": chargerId,
+            "userId": userId,
+            "retainingTokens": flex * 1e-18,
+        }
         desiredWh = int(desiredkWh * 1000)
         try:
             transactionHash = self.contract.functions.startCharging(
@@ -132,7 +137,9 @@ class W3Library:
                 int(startTime.timestamp()),
                 int(round(estimateDuration.total_seconds(), 0)),
                 desiredWh,
-            ).transact({"from": fromAddress, "value": flex}) # TODO flex nicht gegen Float abgesichert, muss ein int sein, da sonst Fehler
+            ).transact(
+                {"from": fromAddress, "value": flex}
+            )  # TODO flex nicht gegen Float abgesichert, muss ein int sein, da sonst Fehler
         except ValueError:
             log.info(
                 f"[LowFunds] User {userId} doesn't have enough founds to send {round(flex * 1e-18, 3)} ether. Current account balance: {round(self.getBalance(fromAddress) * 1e-18, 3)} ether "
@@ -155,37 +162,46 @@ class W3Library:
         return flex, Web3.toHex(transactionHash)
 
     def stopCharging(self, userId, chargerId, endTime, flexFlow, chargedkWh):
-        #sanity check --> chargerId not in use
-        if chargerId in self.chargingIds and self.chargingIds[chargerId]["userId"] is None:
+        # sanity check --> chargerId not in use
+        if (
+            chargerId in self.chargingIds
+            and self.chargingIds[chargerId]["userId"] is None
+        ):
             return None
-        for i in range(2): 
+        for i in range(2):
             try:
                 chargedWh = int(chargedkWh * 1000)
                 flexFlow = int(flexFlow * 1e18)
                 oldBalance = self.getBalance(self.accounts[userId]["address"])
                 transactionHash = self.contract.functions.stopCharging(
-                    userId,
-                    chargerId,
-                    int(endTime.timestamp()),
-                    flexFlow,
-                    chargedWh,
+                    userId, chargerId, int(endTime.timestamp()), flexFlow, chargedWh,
                 ).transact()
                 # self.web3.eth.waitForTransactionReceipt(transactionHash)
                 contract_transaction = (
-                                self.getBalance(self.accounts[userId]["address"]) - oldBalance
-                                       ) * 1e-18
+                    self.getBalance(self.accounts[userId]["address"]) - oldBalance
+                ) * 1e-18
                 log.info(
                     f"[StopChar] User {userId} stopped charging at {chargerId} with flex used: {round(flexFlow * 1e-18, 3)} Simulation Time: {str(endTime)}"
                 )
                 log.info(
                     f"[Transact] Contract transacted {round(contract_transaction, 3)} ether to userID {userId}"
                 )
-                if (abs(self.chargingIds[chargerId]["retainingTokens"] - contract_transaction + (
-                        flexFlow * 1e-18)) > 0.1):
+                if (
+                    abs(
+                        self.chargingIds[chargerId]["retainingTokens"]
+                        - contract_transaction
+                        + (flexFlow * 1e-18)
+                    )
+                    > 0.1
+                ):
                     log.info(
                         f'[TransErr] Contract transacted wrong amount of tokens {abs(self.chargingIds[chargerId]["retainingTokens"] - contract_transaction + (flexFlow * 1e-18))}'
                     )
-                self.chargingIds[chargerId] = {"chargerId": chargerId, "userId": None, "retainingTokens": None}
+                self.chargingIds[chargerId] = {
+                    "chargerId": chargerId,
+                    "userId": None,
+                    "retainingTokens": None,
+                }
                 return Web3.toHex(transactionHash)
             except SolidityError as e:
                 self.contract.functions.loadGasBuffer().transact(
