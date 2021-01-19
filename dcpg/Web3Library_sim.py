@@ -108,7 +108,7 @@ class W3Library:
             # FaucetTransaction
             self.transact(
                 newAddress, "Faucet", 3e20
-            )  # need to be changed to highest Flexpayer amount
+            )
 
             return newAddress
         return
@@ -119,7 +119,7 @@ class W3Library:
         #sanity check --> is chargerId already occupied
         if chargerId in self.chargingIds and self.chargingIds[chargerId]["userId"] is not None:
             return None, None
-        P_charger = 3  # kW --> example for calculating max Flex to pay
+        P_charger = 3  # kW
         # estimateDuration evtl. umwandeln
         fromAddress = self.accounts[userId]["address"]
         av_balance = self.getBalance(fromAddress)
@@ -128,7 +128,7 @@ class W3Library:
             flexWh = (
                     desiredkWh
                     - (P_charger * (estimateDuration.total_seconds() / 3600))
-                    + 10
+                    + 10 #estimated max Flex payment
             )
             flex = int(flexWh * 1e18)
         if flex > av_balance:

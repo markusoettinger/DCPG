@@ -323,7 +323,7 @@
             <PrimaryText>{userId}</PrimaryText>
             <SecondaryText>Address: {account.address}</SecondaryText>
             {#if (account.balance !== undefined)}
-            <SecondaryText>Flex: {account.balance}</SecondaryText>
+            <SecondaryText>Balance: {account.balance}</SecondaryText>
               
             {/if}
           </Text>
