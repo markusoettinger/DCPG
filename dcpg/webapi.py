@@ -1,21 +1,29 @@
-import random
-from typing import Optional
+# Anbindung der Web3Library an eine HTTP-API
+
+from typing import Optional, List, Dict
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+
+# from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from Web3Library_web import W3Library
-from datetime import datetime
+
+# from datetime import datetime
 import pandas as pd
 
-app = FastAPI()
+app = FastAPI(
+    title="DCPG Webapi for Distributed Charging Contracts",
+    description="This API enables contact with the Blockchain, that handles the charging processes and tokens",
+    version="0.5.0",
+)
 instance = W3Library(log_level=40)  # equals logging level error
 if not instance.web3:
     raise ConnectionError("Could not connect to rpc Server")
 
-# app.mount("/front", StaticFiles(directory="Front/public", html=True), name="front")
+# For CORS-> Allowed Endpoints -> could be changed to "*" to allow everybody.
+
 origins = [
     "http://localhost",
     "http://localhost:8080",
@@ -35,37 +43,21 @@ app.add_middleware(
 )
 
 
-# TODO Add more type definitions for docs
-
-
-class Item(BaseModel):
-    name: str
-    price: float
-    is_offer: Optional[bool] = None
-
-
-# @app.get('/')
-# async def front():
-#    return RedirectResponse(url='build')
 @app.get("/getAccounts")
 async def getAccounts():
-
     return instance.accounts
 
 
 @app.get("/inCharging")
 async def inCharging():
-
-    listy = instance.inCharging()
-    # json = JSON.dumps(dicty)
-    return listy
+    return instance.inCharging()
 
 
 @app.get("/balance/{userId}")
 async def getBalance(userId: str):
     try:
-        balance = instance.getBalanceForUser(userId)
-        return {"balance": balance * 1e-18}
+        balance = instance.getBalanceForUser(userId) * 1e-18
+        return {"balance": balance}
     except IndexError:
         raise HTTPException(status_code=404, detail="UserId not known")
 
@@ -74,7 +66,9 @@ async def getBalance(userId: str):
 async def newAccount(userId: str):
 
     if userId in instance.accounts:
-        raise HTTPException(status_code=400, detail="UserId already in use. Choose another one.")
+        raise HTTPException(
+            status_code=400, detail="UserId already in use. Choose another one."
+        )
 
     address = instance.newAccount(userId,)
     return {"address": address}
@@ -115,22 +109,9 @@ async def stopCharging(userId: str, chargerId: str, flexFlow: float, chargedkWh:
     return {"transaction_hash": transactionHash}
 
 
-@app.get("/rand")
-async def rand():
-    return random.randint(0, 100)
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    return {"item_name": item.name, "item_id": item_id}
-
-
 # app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="build")
 
 if __name__ == "__main__":
-    uvicorn.run("webapi:app", host="0.0.0.0", reload=True, port=8000, reload_dirs="dcpg")
+    uvicorn.run(
+        "webapi:app", host="0.0.0.0", reload=True, port=8000, reload_dirs="dcpg"
+    )
