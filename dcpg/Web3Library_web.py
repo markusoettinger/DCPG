@@ -5,7 +5,6 @@ from web3 import Web3, HTTPProvider
 from web3.exceptions import (
     SolidityError,
 )
-filename_acc = "./accounts.txt"
 
 t = "%d-%m-%Y%H-%M-%S"
 
@@ -34,14 +33,6 @@ class W3Library:
         if round(self.getBalance(contractaddress) * 1e-18, 3) < 50:
             self.contract.functions.loadGasBuffer().transact({"value": int(100 * 1e18)})
             log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
-        accountfile = open(filename_acc, 'r')
-        for acc in accountfile.readlines():
-            newAddress = self.newAccount(acc.split(';')[0])
-            self.accounts[acc.split(';')[0]] = {
-                "userID": acc.split(';')[0],
-                "address": newAddress
-            }
-        accountfile.close()
         self.inCharging()
 
     def endSim(self):
@@ -103,9 +94,6 @@ class W3Library:
                 "userID": userId,
                 "address": newAddress
             }
-            accountfile = open(filename_acc, 'a')
-            accountfile.write(f'{userId};{newAddress}\n')
-            accountfile.close()
             log.info(f"[NewAcc  ] New account {newAddress} created for user {userId}")
             # FaucetTransaction
             self.transact(
@@ -186,7 +174,7 @@ class W3Library:
                 ).transact()
                 # self.web3.eth.waitForTransactionReceipt(transactionHash)
                 contract_transaction = (
-                                               self.getBalance(self.accounts[userId]["address"]) - oldBalance
+                        self.getBalance(self.accounts[userId]["address"]) - oldBalance
                                        ) * 1e-18
                 log.info(
                     f"[StopChar] User {userId} stopped charging at {chargerId} with flex used: {round(flexFlow * 1e-18, 3)} Simulation Time: {str(endTime)}"
@@ -220,7 +208,6 @@ class W3Library:
         self.contractBalanceHistory[0].append(simTime)
         self.contractBalanceHistory[1].append(contractBalance)
         processes = []
-        accountfile = open(filename_acc, 'a')
         if simTime is not None:
             log.info(
                 f"[CharInfo] Currently are {numberCharging} charging processes active. Contract Balance: {contractBalance} ether. Simulation Time: {str(simTime)}"
@@ -240,19 +227,5 @@ class W3Library:
         ]
         for i in range(numberCharging):
             processVar = self.contract.functions.chargingprocesses(i).call()
-            process = dict(zip(varNames, processVar))
-            processes.append(process)
-            if process["userID"] not in self.accounts:
-                self.accounts[process["userID"]] = {
-                "userID": process["userID"],
-                "address": process["chargee"]
-                }
-                accountfile.write(f'{process["userID"]};{process["chargee"]}\n')
-            if process["chargerID"] not in self.chargingIds:
-                self.chargingIds[process["chargerID"]] = {
-                    "chargerId": process["chargerID"],
-                     "userId": process["userID"],
-                     "retainingTokens": process["availableFlex"] * 1e-18
-            }
-        accountfile.close()
+            processes.append(dict(zip(varNames, processVar)))
         return processes
