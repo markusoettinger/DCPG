@@ -36,6 +36,7 @@
   let chargedkWh = 0;
   let flexFlow = 0;
   let selectedAvailableFlex = 0;
+  let selectedDesiredkWh = 0;
   let formSurface;
   let userName = "";
 
@@ -368,7 +369,7 @@
               bind:value={desiredkWh}
               min={0}
               max={70}
-              step={5}
+              step={1}
               discrete
               displayMarkers />
             <span slot="label">Desired kWh</span>
@@ -454,6 +455,7 @@
                   selectedAccountId = chargingProcess.userID;
                   selectedChargerId = chargingProcess.chargerID;
                   selectedAvailableFlex = chargingProcess.availableFlex / 1e18;
+                  selectedDesiredkWh = chargingProcess.desiredWh / 1000;
                   sliderDialogStop.open();
                 }}>
                 <Meta style="font-size: 40px;" class="material-icons">
@@ -477,8 +479,8 @@
           <Slider
             bind:value={chargedkWh}
             min={0}
-            max={200}
-            step={5}
+            max={selectedDesiredkWh}
+            step={1}
             discrete
             displayMarkers />
           <span slot="label">Charged kWh</span>
