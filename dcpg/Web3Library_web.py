@@ -36,9 +36,10 @@ class W3Library:
             log.info(f"[ContrCon] Loaded GasBuffer of the SmartContract with 100 ether")
         accountfile = open(filename_acc, 'r')
         for acc in accountfile.readlines():
+            newAddress = self.newAccount(acc.split(';')[0])
             self.accounts[acc.split(';')[0]] = {
                 "userID": acc.split(';')[0],
-                "address": acc.split(';')[1].strip("\n")
+                "address": newAddress
             }
         accountfile.close()
         self.inCharging()
