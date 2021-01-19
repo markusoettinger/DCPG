@@ -6,37 +6,45 @@ pragma solidity >=0.7.0 <0.8.0;
  */
 contract DCPG {
     struct ChargingProcess {
-        string userID; // Client ID
-        string chargerID; // Charging unit ID
-        address chargee; // addresshash vom chargee
-        uint256 startTime; // Charging start Time
-        uint256 estimatedDuration; //estimated charge duration
-        uint256 availableFlex; //Amout of flex that client is willing to pay for charging boost
-        uint256 desiredWh; //Amount of Energy client wants to charge
+        string userID; // User ID, unique string
+        string chargerID; // Charging unit ID, unique string
+        address userWallet; // wallet address of user
+        uint256 startTime; // Charging start time, in UNIX-Time
+        uint256 estimatedDuration; //estimated charge duration, the user stated when starting to charge, in seconds
+        uint256 availableFlex; //Amout of flex that user is willing to pay for charging boost, in wei
+        uint256 desiredWh; //Amount of energy user wants to charge
     }
 
+    // Admin address, that is allowed to stop charging processes
     address public godwin;
 
-    ChargingProcess[] public chargingprocesses; //Array with all charging processes in Charging Station
+    // List of all charging processes in Contract (facility with limited energy)
+    ChargingProcess[] public chargingprocesses;
 
+    /**
+     * @dev Returns the amount of current charging processes.
+     * @return uint256 Length
+     */
     function getChargingProcessesLength() public returns (uint256) {
         return chargingprocesses.length;
     }
 
-    function loadGasBuffer() public payable {
-        
-    }
+    /**
+     * @dev Function that can be called to charge wallet of contract (not really necessary but it is used)
+     */
+
+    function loadGasBuffer() public payable {}
 
     /**
-     * @dev Definition of which charging units are part of charging station
+     * @dev Constructor sets the admin account
      * @param station names of charging station
      */
     constructor(string memory station) public {
         godwin = msg.sender;
-        //Welche Charger IDs zu welcher Station gehoeren (Nice to have)
+        // possibly save station id for future reference.
     }
 
-    //function to delete a charging process from array. Used in stopCharging
+    //function to delete a charging process from list. Used in stopCharging
     function _burn(uint256 x) internal {
         require(
             x < chargingprocesses.length,
@@ -44,12 +52,15 @@ contract DCPG {
         );
         chargingprocesses[x] = chargingprocesses[chargingprocesses.length - 1];
         chargingprocesses.pop();
-        //Check if deep copy and not shallow copy
     }
 
     /**
-     * @dev Stops charging process and distributes flex to client
-     * @param userID ID of client
+     * @dev Stops charging process and distributes flex to user
+     * @param userID ID of user
+     * @param chargerID ID of charger
+     * @param endTime UNIX time of end time, currently not in use but to keep log in blockchain
+     * @param flexFlow Flex flow calculated by God(win), to be payed out to user wallet.
+     * @param chargedWh Charged energy during charing process, currently not in use but to keep log in blockchain
      */
     function stopCharging(
         string memory userID,
@@ -58,11 +69,15 @@ contract DCPG {
         int256 flexFlow,
         uint256 chargedWh
     ) public {
+        // only admin may stop a charing process
         require(msg.sender == godwin, "Only godwin can stop charging process.");
+
         uint256 index = 0;
         bool found = false;
 
+        // check wether userID is in charging processes
         for (uint256 x = 0; x < chargingprocesses.length; x++) {
+            // Not elegantest method to check for string equality
             if (
                 keccak256(abi.encodePacked(chargingprocesses[x].chargerID)) ==
                 keccak256(abi.encodePacked(chargerID))
@@ -72,29 +87,40 @@ contract DCPG {
                 break;
             }
         }
+        // return if not found
         require(found, "Charger ID not found.");
-        //+Flexflow == chargee gets flextokens
-        //checken ob genug tokens im wallet vorhanden
 
-        //+availableFlex == Kunden will boost (Vorstreckung); Flexflow == Auszahlung vom Godwin (Negativ zum Verbrauch vom Flex)
+        // positive Flexflow equates to userWallet gets flextokens.
+        // positive availableFlex equates to user wants to boost and has deposited tokens to be used
         require(
             int256(chargingprocesses[index].availableFlex) + flexFlow >= 0,
             "Godwin allocated too much Flex."
         );
 
+        // calculate flexflow with deposited tokens for payout
         uint256 payout =
             uint256(int256(chargingprocesses[index].availableFlex) + flexFlow);
-        address payable chargee = payable(chargingprocesses[index].chargee);
+
+        // Save user wallet in temporary variable.
+        address payable userWallet =
+            payable(chargingprocesses[index].userWallet);
+
+        // remove entry from list of charging processes
         _burn(index);
+
+        // transfer the calculated tokens
         if (payout > 0) {
-            chargee.transfer(payout);
+            userWallet.transfer(payout);
         }
-        
     }
 
     /**
-     * @dev Starts charging process.
-     * @param userID client ID.
+     * @dev Start charging process by appending to list of charging processes. Sender address and transaction value are saved as userWallet and availableFlex(deposit)
+     * @param userID ID of user
+     * @param chargerID ID of charger
+     * @param startTime UNIX time of start time
+     * @param estimatedDuration User stated estimated duration in seconds
+     * @param desiredWh User desired amount of energy in Wh
      */
 
     //Sanity Checks
@@ -109,12 +135,13 @@ contract DCPG {
             ChargingProcess({
                 userID: userID,
                 chargerID: chargerID,
-                chargee: msg.sender,
+                userWallet: msg.sender,
                 startTime: startTime,
                 estimatedDuration: estimatedDuration,
                 availableFlex: msg.value,
                 desiredWh: desiredWh
             })
         );
+        // Possible improvement dispatch an event to be listend to by Godwin
     }
 }
