@@ -47,9 +47,20 @@ To align formating the formater "Black" is used for all Python files. Please for
 
 ## Setting up the Frontend
 
-First of all you have to make sure that your ganache server is running. If this is the case, you can start setting up the frontend.
-For setting up the frontend you need node.js which you can download from https://nodejs.org/en/.
-After that, you have to make sure that the FastAPI script is running. For that, start the virtual environment with the command "activate DCPG". Then navigate through your command prompt to the directory DCPG/src and start the wepapi.py file with the command "python wepapi.py".
-Next, you will need to navigate in another prompt to the directory DCPG/frontend and initialize the node.js with the command "npm -i".
-Then, you can type the command "npm start". The frontend should open now in your browser with the adress http://localhost:8080. If not,
-you can type in the adress manually in your browser.
+Setting Up Ganache:
+* Make sure that you have set up ganache like explained above in section "setup"
+* Make sure the ganache server is running
+
+Setting up Node.js:
+* Make sure that node.js is installed. If not you can download it here https://nodejs.org/en/.
+
+Starting FastAPI:
+* Start a command prompt and activate the virtual environment by typing in "activate DCPG"
+* Navigate to the directory "DCPG/src" and start the webapi.py file with the command "python.py"
+
+Starting the Frontend:
+* Open up another command prompt and navigate to the directory "DCPG/frontend"
+* Initialize the node,js with the command "npm -i"
+* After node.js has been initialized you can start the frontend with the command "npm start"
+* If the frontend doesn't start automatically in your browser, you can type in the adress http://localhost:8080 manually
+
