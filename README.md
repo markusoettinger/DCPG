@@ -56,7 +56,7 @@ Setting up Node.js:
 
 Starting FastAPI:
 * Start a command prompt and activate the virtual environment by typing in "activate DCPG"
-* Navigate to the directory "DCPG/src" and start the webapi.py file with the command "python.py"
+* Navigate to the directory "DCPG/src" and start the webapi.py file with the command "python webapi.py"
 
 Starting the Frontend:
 * Open up another command prompt and navigate to the directory "DCPG/frontend"
